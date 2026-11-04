@@ -1,0 +1,855 @@
+<!DOCTYPE html>
+<html lang="ms">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pendaftaran Pusat Tuisyen Teraju Didik (PTTD)</title>
+    <style>
+        :root { --primary: #1E3A8A; --secondary: #D97706; --bg: #F3F4F6; }
+        
+        /* PELARASAN FULL-PAGE & TOUCH SCROLLING */
+        html, body {
+            min-height: 100%;
+            margin: 0;
+            padding: 0;
+            overflow-x: hidden;
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
+            background: var(--bg);
+            font-family: system-ui, -apple-system, sans-serif;
+            color: #1F2937;
+        }
+
+        body { padding: 15px; }
+        
+        .container { 
+            max-width: 800px; 
+            margin: 0 auto; 
+            background: white; 
+            border-radius: 12px; 
+            padding: 25px; 
+            box-shadow: 0 4px 15px rgba(0,0,0,0.08); 
+            height: auto !important;
+        }
+        
+        .logo-container { text-align: center; margin-bottom: 20px; }
+        .logo-img { max-width: 100%; height: auto; border-radius: 8px; }
+        
+        h1 { color: var(--primary); text-align: center; margin: 0 0 5px 0; font-size: 24px; }
+        p.subtitle { text-align: center; color: #6B7280; margin: 0 0 25px 0; font-size: 14px; }
+        
+        .section-title { background: #EFF6FF; border-left: 4px solid var(--primary); padding: 8px 12px; font-weight: bold; color: var(--primary); margin: 25px 0 12px 0; border-radius: 0 6px 6px 0; font-size: 15px; }
+        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+        @media (max-width: 600px) { .grid { grid-template-columns: 1fr; } }
+        
+        .form-group { display: flex; flex-direction: column; }
+        .form-group.full { grid-column: span 2; }
+        @media (max-width: 600px) { .form-group.full { grid-column: span 1; } }
+        
+        label { font-size: 13px; font-weight: 600; margin-bottom: 4px; color: #374151; }
+        input, select, textarea { padding: 9px 11px; border: 1px solid #D1D5DB; border-radius: 6px; font-size: 14px; outline: none; }
+        input:focus, select:focus, textarea:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(30,58,138,0.1); }
+        
+        .student-type { display: flex; gap: 10px; margin-bottom: 15px; }
+        .radio-card { flex: 1; border: 2px solid #E5E7EB; padding: 10px; border-radius: 8px; text-align: center; cursor: pointer; font-weight: 600; font-size: 14px; }
+        .radio-card input { display: none; }
+        .radio-card.active { border-color: var(--primary); background: #EFF6FF; color: var(--primary); }
+        
+        .ic-search-box { display: flex; gap: 8px; }
+        .btn-search { background: var(--secondary); color: white; border: none; padding: 0 15px; border-radius: 6px; font-weight: bold; cursor: pointer; }
+        .age-badge { background: #FEF3C7; color: #92400E; padding: 4px 8px; border-radius: 4px; font-weight: bold; display: inline-block; margin-top: 5px; font-size: 12px; width: fit-content; }
+        
+        .subject-box { background: #F9FAFB; border: 1px solid #E5E7EB; border-radius: 8px; padding: 12px; margin-top: 5px; }
+        .subject-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+        .sub-note { font-size: 11px; color: #D97706; font-style: italic; display: block; }
+        .branch-note { font-size: 12px; color: #B45309; font-weight: normal; margin-top: 4px; }
+        
+        .fee-card { background: #FFFBEB; border: 2px dashed #F59E0B; border-radius: 10px; padding: 18px; margin-top: 20px; }
+        .fee-breakdown-box { background: white; border: 1px solid #FCD34D; border-radius: 8px; padding: 15px; margin-top: 10px; font-family: monospace; font-size: 13px; line-height: 1.6; color: #1E293B; white-space: pre-line; }
+        
+        .tnc-container { 
+            background: #F8FAFC; 
+            border: 1px solid #E2E8F0; 
+            border-radius: 8px; 
+            padding: 15px; 
+            font-size: 13px; 
+            color: #334155; 
+            max-height: 250px; 
+            overflow-y: auto; 
+            -webkit-overflow-scrolling: touch; 
+            margin-top: 10px; 
+            line-height: 1.6; 
+        }
+        .tnc-container h5 { margin: 12px 0 4px 0; color: var(--primary); font-size: 13px; }
+        .tnc-container ol, .tnc-container ul { margin: 0; padding-left: 20px; }
+        
+        .agreement-box, .media-consent-box { background: #F3F4F6; border-radius: 8px; padding: 15px; margin-top: 15px; }
+        .checkbox-item { display: flex; align-items: flex-start; gap: 10px; margin-bottom: 10px; font-size: 13px; cursor: pointer; }
+        .checkbox-item input { margin-top: 3px; }
+        
+        .file-upload-box { background: #FAF5FF; border: 1px dashed #A855F7; border-radius: 8px; padding: 15px; margin-top: 15px; }
+        .upload-notice { background: #FEF3C7; border: 1px solid #FCD34D; border-radius: 6px; padding: 10px; margin-top: 12px; font-size: 13px; color: #78350F; line-height: 1.5; grid-column: span 2; }
+        @media (max-width: 600px) { .upload-notice { grid-column: span 1; } }
+
+        .btn-submit { background: var(--primary); color: white; border: none; padding: 14px 24px; font-size: 16px; font-weight: bold; border-radius: 8px; cursor: pointer; width: 100%; margin-top: 25px; }
+        .btn-submit:hover { background: #1E40AF; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <!-- LOGO HEADER PTTD -->
+    <div class="logo-container">
+        <img src="https://lh3.googleusercontent.com/d/1WlMIwoIseQSpgEN7-CjLmnIOInagk1o2" class="logo-img" alt="Logo Pusat Tuisyen Teraju Didik">
+    </div>
+
+    <h1>Pusat Tuisyen Teraju Didik</h1>
+    <p class="subtitle">Borang Pendaftaran Pelajar Sesi 2027 (Pengkalan / Pasir Puteh)</p>
+
+    <form id="pttdForm">
+        <!-- Status Pelajar -->
+        <div class="student-type">
+            <label class="radio-card active" id="lblBaru">
+                <input type="radio" name="studentStatus" value="BARU" checked onclick="toggleStatus('BARU')"> Pelajar Baharu
+            </label>
+            <label class="radio-card" id="lblLama">
+                <input type="radio" name="studentStatus" value="LAMA" onclick="toggleStatus('LAMA')"> Pelajar Lama (Semak IC)
+            </label>
+        </div>
+
+        <!-- 1. MAKLUMAT PELAJAR & PENJAGA -->
+        <div class="section-title">1. Maklumat Pelajar & Penjaga</div>
+        <div class="grid">
+            <div class="form-group full">
+                <label>Nama Penuh Pelajar *</label>
+                <input type="text" id="studentName" placeholder="Contoh: Muhammad Amir bin Ahmad" required>
+            </div>
+            
+            <div class="form-group">
+                <label>No. MyKad / Kad Pengenalan *</label>
+                <div class="ic-search-box">
+                    <input type="text" id="icNumber" placeholder="Contoh: 120514085431" oninput="calculateAge()" style="width: 100%;" required>
+                    <button type="button" id="btnCheckIC" class="btn-search" style="display:none;" onclick="checkICDatabase()">Semak</button>
+                </div>
+                <div id="ageDisplay" class="age-badge" style="display:none;">Umur Sesi 2027: <span id="ageValue">-</span></div>
+            </div>
+
+            <div class="form-group">
+                <label>Tarikh Mula Kelas *</label>
+                <input type="date" id="startDate" required>
+            </div>
+
+            <div class="form-group">
+                <label>Tahun / Tingkatan (Sesi 2027) *</label>
+                <select id="grade2027" onchange="onGradeChange()" required>
+                    <option value="">-- Pilih --</option>
+                    <option value="Membaca">Kelas Membaca (BM & BI)</option>
+                    <option value="Tahun 3">Tahun 3</option>
+                    <option value="Tahun 4">Tahun 4</option>
+                    <option value="Tahun 5">Tahun 5</option>
+                    <option value="Tahun 6">Tahun 6</option>
+                    <option value="Form 1">Tingkatan 1</option>
+                    <option value="Form 2">Tingkatan 2</option>
+                    <option value="Form 3">Tingkatan 3</option>
+                    <option value="Form 4">Tingkatan 4 (SPM)</option>
+                    <option value="Form 5">Tingkatan 5 (SPM)</option>
+                    <option value="Lain-lain">Lain-lain (Asrama / Ulangan SPM / Khas)</option>
+                </select>
+            </div>
+
+            <div class="form-group full" id="otherCategoryGroup" style="display: none;">
+                <label>Nyatakan Kategori / Keterangan Pelajar *</label>
+                <input type="text" id="otherCategoryDetails" placeholder="Contoh: Pelajar Asrama Cuti Sekolah / Ulangan SPM / Subjek Khas">
+            </div>
+
+            <div class="form-group">
+                <label>Nama Sekolah *</label>
+                <input type="text" id="schoolName" placeholder="Contoh: SK Seri Ampang" required>
+            </div>
+
+            <div class="form-group">
+                <label>Jenis Kelas di Sekolah *</label>
+                <select id="schoolClassType" required>
+                    <option value="Biasa (BM)">Biasa (Aliran Bahasa Melayu)</option>
+                    <option value="DLP (English)">DLP (Dual Language Programme)</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label>Nama Kelas di Sekolah</label>
+                <input type="text" id="schoolClassName" placeholder="Contoh: 4 Cemerlang">
+            </div>
+
+            <div class="form-group full">
+                <label>Nama Ibu / Bapa / Penjaga *</label>
+                <input type="text" id="guardianName" placeholder="Contoh: Ahmad bin Ibrahim" required>
+            </div>
+
+            <div class="form-group full">
+                <label>Alamat Rumah Lengkap *</label>
+                <textarea id="homeAddress" rows="2" placeholder="Masukkan alamat kediaman lengkap" required></textarea>
+            </div>
+
+            <div class="form-group">
+                <label>No. Telefon Ayah *</label>
+                <input type="tel" id="fatherPhone" placeholder="Contoh: 0123456789" required>
+            </div>
+
+            <div class="form-group">
+                <label>No. Telefon Ibu *</label>
+                <input type="tel" id="motherPhone" placeholder="Contoh: 0198765432" required>
+            </div>
+
+            <div class="form-group">
+                <label>No. Telefon Pelajar (Jika Ada)</label>
+                <input type="tel" id="studentPhone" placeholder="Contoh: 0112345678">
+            </div>
+
+            <div class="form-group">
+                <label>No. Telefon Rumah (Jika Ada)</label>
+                <input type="tel" id="homePhone" placeholder="Contoh: 053123456">
+            </div>
+        </div>
+
+        <!-- 2. PILIHAN KELAS & SUBJEK -->
+        <div class="section-title">2. Pilihan Mod & Subjek Kelas</div>
+        <div class="grid">
+            <div class="form-group full">
+                <label>Mod Pembelajaran *</label>
+                <div class="student-type">
+                    <label class="radio-card active" id="lblFizikal">
+                        <input type="radio" name="learningMode" value="FIZIKAL" checked onclick="setMode('FIZIKAL')"> 🏫 Kelas Fizikal
+                    </label>
+                    <label class="radio-card" id="lblOnline" style="display: none;">
+                        <input type="radio" name="learningMode" value="ONLINE" onclick="setMode('ONLINE')"> 💻 Kelas Online (Terhad)
+                    </label>
+                </div>
+            </div>
+
+            <div class="form-group full" id="branchGroup">
+                <label>Cawangan Fizikal *</label>
+                <select id="branchSelect" onchange="loadSubjectsByGrade()">
+                    <option value="Pengkalan">Pengkalan, Ipoh</option>
+                    <option value="Pasir Puteh">Pasir Puteh, Ipoh</option>
+                </select>
+                <span id="branchLockNotice" class="branch-note" style="display:none;"></span>
+            </div>
+
+            <div class="form-group full">
+                <label>Saiz Kelas *</label>
+                <select id="classFormat" onchange="onClassFormatChange()">
+                    <option value="Regular">Kelas Biasa (Kelas Besar max 20-25 orang)</option>
+                    <option value="SmallGroup">Kelas Kumpulan Kecil (Min 2, Max 4 orang)</option>
+                    <option value="Personal">Kelas Personal (1-to-1)</option>
+                </select>
+            </div>
+        </div>
+
+        <!-- SEKSYEN PAKEJ SUBJEK -->
+        <div id="packageChoiceSection" class="form-group full" style="margin-top: 15px; display:none;">
+            <label id="packageChoiceLabel">Pilihan Pakej Subjek *</label>
+            <select id="packageSelect" onchange="handlePackageChange()">
+            </select>
+        </div>
+
+        <div class="form-group full" style="margin-top: 10px;">
+            <div class="subject-box">
+                <label style="margin-bottom: 8px; display: block;">Senarai Subjek (Tanda /):</label>
+                <div id="subjectListContainer" class="subject-grid">
+                    <small style="color:#9CA3AF;">Sila pilih Tahun/Tingkatan di atas terlebih dahulu.</small>
+                </div>
+            </div>
+        </div>
+
+        <div class="fee-card">
+            <h4 style="margin: 0 0 10px 0; color: #B45309; text-align: center;">📜 Rincian Yuran Pendaftaran PTTD</h4>
+            <div id="feeBreakdownDisplay" class="fee-breakdown-box">
+                Sila pilih Tahun/Tingkatan dan Subjek untuk melihat perincian Yuran Permulaan.
+            </div>
+        </div>
+
+        <!-- 3. DOKUMEN MUAT NAIK PELAJAR (PILIHAN) -->
+        <div class="section-title">3. Muat Naik Dokumen Pelajar (Pilihan)</div>
+        <div class="file-upload-box grid">
+            <div class="form-group">
+                <label>1. Salinan IC Pelajar (PDF/Gambar)</label>
+                <input type="file" id="fileIC" accept="image/*,.pdf">
+            </div>
+            <div class="form-group">
+                <label>2. Salinan Keputusan Peperiksaan Akhir Sekolah</label>
+                <input type="file" id="fileResult" accept="image/*,.pdf">
+            </div>
+
+            <!-- NOTIS PENGHANTARAN VIA WHATSAPP JIKA GAGAL UPLOAD -->
+            <div class="upload-notice">
+                📌 <strong>Nota:</strong> Sekiranya anda menghadapi sebarang masalah atau gagal memuat naik dokumen di atas, anda boleh terus menghantar salinan dokumen tersebut secara terus ke <strong>WhatsApp Pejabat PTTD</strong>.
+            </div>
+        </div>
+
+        <!-- 4. TERMA & SYARAT RASMI PTTD -->
+        <div class="section-title">4. Terma & Syarat PTTD</div>
+        <div class="tnc-container">
+            <h5>1. Pendaftaran</h5>
+            <ul>
+                <li>Semua maklumat yang diberikan semasa pendaftaran mestilah tepat, benar & terkini.</li>
+                <li>Ibu bapa perlu memaklumkan kepada pihak pusat tuisyen sekiranya terdapat sebarang perubahan maklumat yang diberikan.</li>
+            </ul>
+
+            <h5>2. Yuran</h5>
+            <ul>
+                <li>Yuran Permulaan perlu dibayar sebelum kelas bermula.</li>
+                <li>Pihak ibu, bapa atau penjaga perlu membuat bayaran yuran bulanan sebelum 7hb setiap bulan.</li>
+                <li>Semua yuran yang telah dibayar tidak akan dipulangkan (kecuali atas sebab-sebab tertentu).</li>
+                <li>Segala bukti pembayaran (resit) yang telah dibuat setiap bulan perlu disimpan. (Saya faham bahawa sebarang percanggahan tanpa bukti tidak akan dilayan).</li>
+                <li>Bagi pelajar kumpulan kecil (2-4 orang pelajar), kadar yuran bulanan akan berubah mengikut bilangan pelajar. Jika bilangan pelajar yang tinggal hanya seorang, pelajar perlu membuat bayaran mengikut kadar kelas persendirian.</li>
+            </ul>
+
+            <h5>3. Kehadiran & Kelas Ganti</h5>
+            <ul>
+                <li>Pelajar mesti hadir tepat pada waktunya untuk setiap kelas.</li>
+                <li>Jika pelajar tidak hadir (terutamanya pelajar Persendirian atau Kumpulan kecil), ibu, bapa atau penjaga perlu memaklumkan sekurang-kurangnya 2 jam sebelum kelas bermula.</li>
+                <li>Kelas hanya akan ditunda sekiranya guru tidak dapat hadir ke kelas tersebut.</li>
+                <li>Kelas masih akan dijalankan seperti biasa sekiranya pelajar tidak dapat hadir ke kelas tersebut.</li>
+                <li>Kelas ganti akan diatur mengikut kekosongan waktu guru.</li>
+            </ul>
+
+            <h5>4. Jumlah Kelas</h5>
+            <ul>
+                <li>Jumlah kelas wajib bagi setiap subjek (sebulan) adalah sebanyak 4 kali.</li>
+                <li>Sekiranya terdapat 5 minggu (5 kali kelas) bagi bulan tersebut:
+                    <ol>
+                        <li>Pihak tuisyen berhak untuk menjadikan kelas ke-5 ini sebagai kelas ganti.</li>
+                        <li>Jika tiada kelas perlu diganti, kelas tersebut akan dianggap sebagai kelas bonus.</li>
+                        <li>Pihak tuisyen juga boleh membatalkan kelas ke-5 ini (jika perlu).</li>
+                    </ol>
+                </li>
+            </ul>
+
+            <h5>5. Kelas Semasa Cuti Umum</h5>
+            <ul>
+                <li>Kelas tidak akan dijalankan pada hari cuti umum (Rujuk Kalendar Akademik 2026 untuk senarai Cuti Umum 2026).</li>
+                <li>Sekiranya terdapat keperluan untuk mengadakan kelas pada hari cuti umum, pihak pusat tuisyen akan memaklumkan kepada pihak ibu bapa atau penjaga terlebih dahulu.</li>
+                <li>Yuran bulanan tidak akan ditolak atau dipulangkan atas sebab cuti umum.</li>
+            </ul>
+
+            <h5>6. Disiplin Pelajar</h5>
+            <ul>
+                <li>Pelajar mesti berkelakuan & berpakaian sopan semasa menghadiri ke kelas.</li>
+                <li>Pusat tuisyen berhak menamatkan penyertaan pelajar jika berlaku sebarang salah laku sewaktu berada di premis pusat tuisyen.</li>
+                <li>Pusat tuisyen akan memaklumkan serta merta kepada pihak ibu, bapa atau penjaga jika terdapat sebarang salah laku di premis pusat tuisyen. (Senarai salah laku boleh dirujuk pada Peraturan Pusat Tuisyen yang akan diedarkan sebelum kelas bermula).</li>
+            </ul>
+
+            <h5>7. Bahan Pembelajaran</h5>
+            <ul>
+                <li>Setiap bahan pembelajaran yang diberikan adalah untuk kegunaan pelajar sahaja.</li>
+                <li>Ibu bapa perlu memastikan pelajar membawa peralatan yang diperlukan setiap kali pelajar hadir ke kelas.</li>
+                <li>Sekiranya terdapat mana-mana bahan pembelajaran yang diberikan telah hilang atau rosak, pelajar atau ibubapa/penjaga dikehendaki membayar kos penggantian bahan kepada pihak pusat tuisyen.</li>
+                <li>Jika buku tulis yang diberikan telah penuh/habis digunakan, pihak pusat tuisyen tidak akan memberikan buku tulis yang baru.</li>
+            </ul>
+
+            <h5>8. Keselamatan & Tanggungjawab</h5>
+            <ul>
+                <li>Pusat tuisyen hanya bertanggungjawab ke atas pelajar semasa waktu kelas sahaja.</li>
+                <li>Ibu bapa/penjaga wajib mengambil pelajar tepat pada masanya. Jika ibu/bapa/penjaga lambat untuk menjemput pelajar, diminta memaklumkan kepada pihak pusat tuisyen terlebih dahulu.</li>
+                <li>Pusat tuisyen tidak bertanggungjawab diatas sebarang kehilangan barang peribadi.</li>
+                <li>Sebarang kecuaian atau tindakan pelajar yang mengakibatkan kerosakan harta benda atau kecederaan akan ditanggung oleh pihak ibu bapa/penjaga.</li>
+            </ul>
+
+            <h5>9. Komunikasi</h5>
+            <ul>
+                <li>Notis & makluman penting akan dihantar melalui WhatsApp nombor pejabat pusat tuisyen.</li>
+                <li>Sekiranya pelajar hanya menerima makluman dari guru di dalam kelas, ianya masih belum dikira rasmi.</li>
+                <li>Makluman hanya dianggap sah dan rasmi apabila diterima daripada pihak pejabat pusat tuisyen sahaja.</li>
+            </ul>
+
+            <h5>10. Notis Berhenti / Penamatan Kelas</h5>
+            <ul>
+                <li>Notis berhenti perlu diberikan sekurang-kurangnya 2 minggu sebelum tarikh berhenti.</li>
+                <li>Notis boleh dimaklumkan melalui Whatsapp pejabat pusat tuisyen.</li>
+                <li>Yuran yang telah dibayar tidak akan dikembalikan sekiranya pengunduran dibuat tanpa notis.</li>
+                <li>Penamatan kelas hanya dianggap sah setelah pihak pusat tuisyen menerima dan mengesahkan notis tersebut.</li>
+                <li>Yuran akan masih berjalan jika tiada sebarang notis pemberhentian dibuat.</li>
+                <li>Pusat tuisyen juga berhak menamatkan/menggantung penyertaan pelajar jika yuran tidak dibayar maksimum 2 bulan atau jika berlaku sebarang masalah disiplin.</li>
+            </ul>
+        </div>
+
+        <!-- 5. PENGESAHAN IBU BAPA & KEBENARAN MEDIA -->
+        <div class="agreement-box">
+            <label style="font-weight: bold; margin-bottom: 8px; display: block;">Pengesahan & Persetujuan *</label>
+            <label class="checkbox-item">
+                <input type="checkbox" id="chkAgree1" required>
+                <span>Saya telah membaca dan memahami Terma & Syarat di atas.</span>
+            </label>
+            <label class="checkbox-item">
+                <input type="checkbox" id="chkAgree2" required>
+                <span>Saya bersetuju dan memahami semua peraturan dan polisi yang telah ditetapkan oleh pusat tuisyen.</span>
+            </label>
+            <label class="checkbox-item">
+                <input type="checkbox" id="chkAgree3" required>
+                <span>Saya faham bahawa yuran tidak dikembalikan mengikut syarat yang dinyatakan.</span>
+            </label>
+        </div>
+
+        <div class="media-consent-box">
+            <label style="font-weight: bold; margin-bottom: 8px; display: block;">Kebenaran Memuat Naik Gambar Pelajar *</label>
+            <label class="checkbox-item" style="margin-bottom: 8px;">
+                <input type="radio" name="mediaConsent" value="BENAR" checked>
+                <span>Membenarkan pihak PTTD untuk memuatnaik gambar anak saya & aktiviti pembelajaran anak saya di media sosial PTTD selagi ia tidak melibatkan sebarang unsur negatif yang boleh membawa kemudaratan.</span>
+            </label>
+            <label class="checkbox-item">
+                <input type="radio" name="mediaConsent" value="TIDAK_BENAR">
+                <span>Tidak membenarkan pihak PTTD untuk memuatnaik gambar anak saya dan aktiviti pembelajaran anak saya di mana-mana media sosial PTTD.</span>
+            </label>
+        </div>
+
+        <button type="submit" class="btn-submit">Hantar Pendaftaran PTTD</button>
+    </form>
+</div>
+
+<script>
+var currentMode = 'FIZIKAL';
+var scriptURL = 'https://script.google.com/macros/s/AKfycbzbOPyGqZ5MB_3UZiWXcOPkmNtcR6YrMHpJmFe9H8g2ReuiUHxY2MDgJu01euyU6dY/exec';
+
+var subjectsData = {
+    "Membaca": ["Membaca BM", "Membaca BI"],
+    "Tahun 3": ["Bahasa Inggeris", "Matematik", "Bahasa Melayu", "Sains", "Sejarah"],
+    "Tahun 4": ["Bahasa Melayu", "Bahasa Inggeris", "Matematik", "Sains", "Sejarah"],
+    "Tahun 5": ["Bahasa Melayu", "Bahasa Inggeris", "Matematik", "Sains", "Sejarah"],
+    "Tahun 6": ["Bahasa Melayu", "Bahasa Inggeris", "Matematik", "Sains", "Sejarah"],
+    "Form 1": ["Bahasa Melayu", "Bahasa Inggeris", "Matematik", "Sains", "Sejarah"],
+    "Form 2": ["Bahasa Melayu", "Bahasa Inggeris", "Matematik", "Sains", "Sejarah", "Geografi"],
+    "Form 3": ["Bahasa Melayu", "Bahasa Inggeris", "Matematik", "Sains", "Sejarah", "Geografi"],
+    "Form 4": ["Bahasa Melayu", "Bahasa Inggeris", "Matematik", "Sains", "Sejarah", "Matematik Tambahan", "Fizik", "Kimia", "Biologi", "Perniagaan", "Prinsip Akaun"],
+    "Form 5": ["Bahasa Melayu", "Bahasa Inggeris", "Matematik", "Sains", "Sejarah", "Matematik Tambahan", "Fizik", "Kimia", "Biologi", "Perniagaan", "Prinsip Akaun"]
+};
+
+var allSubjectsList = [
+    "Membaca BM", "Membaca BI", "Bahasa Melayu", "Bahasa Inggeris", "Matematik", 
+    "Sains", "Sejarah", "Geografi", "Matematik Tambahan", "Fizik", "Kimia", 
+    "Biologi", "Perniagaan", "Prinsip Akaun"
+];
+
+var onlineAllowedSubjects = ["Bahasa Melayu", "Bahasa Inggeris", "Matematik", "Sains", "Matematik Tambahan"];
+var pasirPutehOnlySubjects = ["Perniagaan", "Prinsip Akaun"];
+
+function calculateAge() {
+    var ic = document.getElementById('icNumber').value.replace(/[^0-9]/g, '');
+    var ageDisplay = document.getElementById('ageDisplay');
+    var ageValue = document.getElementById('ageValue');
+    
+    if (ic.length >= 2) {
+        var yearTwoDigits = parseInt(ic.substring(0, 2), 10);
+        var birthYear = (yearTwoDigits > 30) ? (1900 + yearTwoDigits) : (2000 + yearTwoDigits);
+        var age = 2027 - birthYear;
+        
+        ageValue.innerText = age + " Tahun";
+        ageDisplay.style.display = 'inline-block';
+    } else {
+        ageDisplay.style.display = 'none';
+    }
+}
+
+function toggleStatus(type) {
+    document.getElementById('lblBaru').classList.toggle('active', type === 'BARU');
+    document.getElementById('lblLama').classList.toggle('active', type === 'LAMA');
+    var btnCheck = document.getElementById('btnCheckIC');
+    
+    if(type === 'LAMA') {
+        btnCheck.style.display = 'block';
+        alert('Mod Pelajar Lama: Masukkan No. IC dan tekan butang "Semak".');
+    } else {
+        btnCheck.style.display = 'none';
+    }
+    calculateFee();
+}
+
+function checkICDatabase() {
+    var ic = document.getElementById('icNumber').value;
+    if(!ic) { alert('Sila masukkan No. IC.'); return; }
+    
+    fetch(scriptURL + '?ic=' + encodeURIComponent(ic))
+    .then(response => response.json())
+    .then(data => {
+        if(data.found) {
+            alert('Rekod Pelajar Lama Ditemui! Maklumat diisi automatik.');
+            document.getElementById('studentName').value = data.studentName || '';
+            document.getElementById('guardianName').value = data.guardianName || '';
+            document.getElementById('fatherPhone').value = data.fatherPhone || '';
+            document.getElementById('motherPhone').value = data.motherPhone || '';
+            document.getElementById('schoolName').value = data.schoolName || '';
+            document.getElementById('homeAddress').value = data.homeAddress || '';
+            calculateAge();
+        } else {
+            alert('Rekod No. IC tidak ditemui. Sila teruskan dengan mengisi maklumat secara manual.');
+        }
+    })
+    .catch(error => {
+        alert('Ralat semasa menyemak rekod: ' + error.message);
+    });
+}
+
+function setMode(mode) {
+    currentMode = mode;
+    document.getElementById('lblFizikal').classList.toggle('active', mode === 'FIZIKAL');
+    document.getElementById('lblOnline').classList.toggle('active', mode === 'ONLINE');
+    document.getElementById('branchGroup').style.display = (mode === 'FIZIKAL') ? 'block' : 'none';
+    loadSubjectsByGrade();
+}
+
+function onClassFormatChange() {
+    loadSubjectsByGrade();
+}
+
+function onGradeChange() {
+    var grade = document.getElementById('grade2027').value;
+    var otherGrp = document.getElementById('otherCategoryGroup');
+    var otherInput = document.getElementById('otherCategoryDetails');
+    var branchSelect = document.getElementById('branchSelect');
+    var branchLockNotice = document.getElementById('branchLockNotice');
+    
+    if (grade === "Membaca") {
+        branchSelect.value = "Pasir Puteh";
+        branchSelect.disabled = true;
+        branchLockNotice.innerText = "📌 Kelas Membaca hanya dijalankan di cawangan Pasir Puteh.";
+        branchLockNotice.style.display = "block";
+    } else if (grade === "Tahun 3") {
+        branchSelect.value = "Pengkalan";
+        branchSelect.disabled = true;
+        branchLockNotice.innerText = "📌 Kelas Tahun 3 hanya dijalankan di cawangan Pengkalan.";
+        branchLockNotice.style.display = "block";
+    } else {
+        branchSelect.disabled = false;
+        branchLockNotice.style.display = "none";
+    }
+    
+    if (grade === "Lain-lain") {
+        otherGrp.style.display = "block";
+        otherInput.required = true;
+    } else {
+        otherGrp.style.display = "none";
+        otherInput.required = false;
+    }
+    loadSubjectsByGrade();
+}
+
+function loadSubjectsByGrade() {
+    var grade = document.getElementById('grade2027').value;
+    var format = document.getElementById('classFormat').value;
+    var branch = document.getElementById('branchSelect').value;
+    var container = document.getElementById('subjectListContainer');
+    var pkgSec = document.getElementById('packageChoiceSection');
+    var pkgSelect = document.getElementById('packageSelect');
+    
+    container.innerHTML = "";
+    pkgSelect.innerHTML = "";
+    
+    if (grade && format === "Regular") {
+        pkgSec.style.display = "block";
+        
+        if (grade === "Form 4" || grade === "Form 5") {
+            pkgSelect.innerHTML = '<option value="PakejA">Pakej A (5 Subjek Teras: BM, BI, Mat, Sains, Sejarah)</option>' +
+                                 '<option value="PakejB">Pakej B (5 Subjek Sains Tulen: Mat, Add Math, Fizik, Kimia, Bio)</option>' +
+                                 '<option value="Custom">Pilih Subjek Individu (Custom)</option>';
+        } else {
+            var allSubCount = (subjectsData[grade] || []).length;
+            pkgSelect.innerHTML = '<option value="PakejAll">Semua Subjek (Pakej ' + allSubCount + ' Subjek)</option>' +
+                                 '<option value="Custom">Pilih Subjek Individu (Custom)</option>';
+        }
+    } else {
+        pkgSec.style.display = "none";
+    }
+
+    var list = (grade === "Lain-lain") ? allSubjectsList : (subjectsData[grade] || []);
+    
+    list.forEach(function(subjek) {
+        if (currentMode === 'ONLINE' && !onlineAllowedSubjects.includes(subjek)) {
+            return; 
+        }
+
+        if (format === 'SmallGroup' && grade === 'Tahun 3') {
+            return;
+        }
+
+        var label = document.createElement('label');
+        var note = "";
+        if (pasirPutehOnlySubjects.includes(subjek) && branch === "Pengkalan") {
+            note = '<span class="sub-note">*Kelas di Pasir Puteh</span>';
+        }
+
+        label.innerHTML = '<input type="checkbox" class="subj-item" value="' + subjek + '" onchange="calculateFee()"> ' + subjek + note;
+        container.appendChild(label);
+    });
+
+    if (grade && format === "Regular") {
+        handlePackageChange();
+    } else {
+        calculateFee();
+    }
+}
+
+function handlePackageChange() {
+    var grade = document.getElementById('grade2027').value;
+    var pkg = document.getElementById('packageSelect').value;
+    var checkboxes = document.querySelectorAll('.subj-item');
+    
+    var pakejA = ["Bahasa Melayu", "Bahasa Inggeris", "Matematik", "Sains", "Sejarah"];
+    var pakejB = ["Matematik", "Matematik Tambahan", "Fizik", "Kimia", "Biologi"];
+    
+    checkboxes.forEach(function(cb) {
+        if (grade === "Form 4" || grade === "Form 5") {
+            if (pkg === "PakejA") {
+                cb.checked = pakejA.includes(cb.value);
+                cb.disabled = true;
+            } else if (pkg === "PakejB") {
+                cb.checked = pakejB.includes(cb.value);
+                cb.disabled = true;
+            } else {
+                cb.disabled = false;
+            }
+        } else {
+            if (pkg === "PakejAll") {
+                cb.checked = true;
+                cb.disabled = true;
+            } else {
+                cb.disabled = false;
+            }
+        }
+    });
+
+    calculateFee();
+}
+
+function calculateFee() {
+    var grade = document.getElementById('grade2027').value;
+    var format = document.getElementById('classFormat').value;
+    var checkedSubjects = document.querySelectorAll('.subj-item:checked');
+    var isLama = document.getElementById('lblLama').classList.contains('active');
+    
+    if (!grade || (checkedSubjects.length === 0 && (grade !== "Form 4" && grade !== "Form 5"))) {
+        document.getElementById('feeBreakdownDisplay').innerText = "Sila pilih Tingkatan dan sekurang-kurangnya 1 Subjek.";
+        return;
+    }
+
+    var regFee = isLama ? 0 : 25;
+    var monthlyFee = 0;
+    var materialFeeTotal = 0;
+    var classTypeLabel = "";
+    var count = checkedSubjects.length;
+
+    if (format === "SmallGroup") {
+        monthlyFee = count * 140;
+        classTypeLabel = "Kumpulan Kecil (" + count + " Subjek - RM140/subjek)";
+    } 
+    else if (format === "Personal") {
+        if (grade === "Form 4" || grade === "Form 5") {
+            monthlyFee = count * 240;
+            classTypeLabel = "Personal 1-to-1 SPM (" + count + " Subjek - RM240/subjek)";
+        } else {
+            monthlyFee = count * 200;
+            classTypeLabel = "Personal 1-to-1 (" + count + " Subjek - RM200/subjek)";
+        }
+    } 
+    else {
+        var pkgSelect = document.getElementById('packageSelect');
+        var pkgVal = pkgSelect ? pkgSelect.value : "Custom";
+        
+        if (grade === "Form 4" || grade === "Form 5") {
+            if (pkgVal === "PakejA") {
+                monthlyFee = 190;
+                classTypeLabel = "PAKEJ A (5 Subjek Teras)";
+            } else if (pkgVal === "PakejB") {
+                monthlyFee = 220;
+                classTypeLabel = "PAKEJ B (5 Subjek Sains Tulen)";
+            } else {
+                classTypeLabel = count + " Subjek Individu";
+                if (count === 1) {
+                    var subjName = checkedSubjects[0] ? checkedSubjects[0].value : "";
+                    monthlyFee = (subjName === "Matematik Tambahan") ? 80 : 60;
+                } else if (count >= 2) {
+                    monthlyFee = count * 45;
+                }
+            }
+        } 
+        else if (grade === "Membaca") {
+            if (count === 2 || pkgVal === "PakejAll") {
+                monthlyFee = 180;
+                classTypeLabel = "PAKEJ MEMBACA (BM & BI)";
+            } else {
+                monthlyFee = 100;
+                classTypeLabel = "1 Subjek Membaca";
+            }
+        } 
+        else {
+            if (pkgVal === "PakejAll") {
+                if (grade === "Form 2" || grade === "Form 3") {
+                    monthlyFee = 200;
+                    classTypeLabel = "PAKEJ (6 Subjek)";
+                } else if (grade === "Tahun 3") {
+                    monthlyFee = count * 45;
+                    classTypeLabel = "PAKEJ (" + count + " Subjek)";
+                } else {
+                    monthlyFee = 180;
+                    classTypeLabel = "PAKEJ (5 Subjek)";
+                }
+            } else {
+                classTypeLabel = count + " Subjek Individu";
+                if (count === 1) {
+                    monthlyFee = 60;
+                } else if (count >= 2) {
+                    monthlyFee = count * 45;
+                }
+            }
+        }
+    }
+
+    checkedSubjects.forEach(function(cb) {
+        var subjek = cb.value;
+        if (grade === "Form 4" || grade === "Form 5" || grade === "Lain-lain") {
+            if (subjek === "Matematik" || subjek === "Matematik Tambahan" || subjek === "Fizik") {
+                materialFeeTotal += 50;
+            } else if (subjek === "Kimia" || subjek === "Biologi") {
+                materialFeeTotal += 40;
+            } else {
+                materialFeeTotal += 35;
+            }
+        } else {
+            materialFeeTotal += 35;
+        }
+    });
+
+    var totalInitial = regFee + materialFeeTotal + monthlyFee;
+    var gradeText = document.getElementById('grade2027').options[document.getElementById('grade2027').selectedIndex].text;
+    if (grade === "Lain-lain") {
+        var detailInput = document.getElementById('otherCategoryDetails').value;
+        if (detailInput) gradeText += " (" + detailInput + ")";
+    }
+    
+    var output = "*Yuran Permulaan " + gradeText + "*\n\n";
+    output += "Jenis Kelas : " + classTypeLabel + "\n\n";
+    output += "• Yuran Pendaftaran = RM" + regFee + (isLama ? " (Pelajar Lama)" : "") + "\n";
+    output += "• Yuran Bahan = RM" + materialFeeTotal + " (Sekali bayar)\n";
+    output += "• Yuran Bulan Pertama = RM" + monthlyFee + "\n\n";
+    output += "Jumlah Yuran Permulaan\n";
+    output += "= RM" + regFee + " + RM" + materialFeeTotal + " + RM" + monthlyFee + "\n";
+    output += "= *RM" + totalInitial + "*\n\n";
+    output += "Yuran mulai bulan kedua dan seterusnya\n";
+    output += "= RM" + monthlyFee + " sahaja sebulan";
+
+    document.getElementById('feeBreakdownDisplay').innerText = output;
+}
+
+// INTEGRASI PENGHANTARAN DATA & TAMPILAN PENGESAHAN KELAS AKHIR
+document.getElementById('pttdForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    
+    var btnSubmit = document.querySelector('.btn-submit');
+    btnSubmit.innerText = 'Sedang Mengirim Pendaftaran...';
+    btnSubmit.disabled = true;
+
+    var checkedSubjects = Array.from(document.querySelectorAll('.subj-item:checked')).map(cb => cb.value).join(', ');
+    var studentNameVal = document.getElementById('studentName').value;
+    var gradeVal = document.getElementById('grade2027').options[document.getElementById('grade2027').selectedIndex].text;
+    var branchVal = document.getElementById('branchSelect').value;
+    var startDateVal = document.getElementById('startDate').value;
+    var feeText = document.getElementById('feeBreakdownDisplay').innerText;
+
+    // DATA BANK & QR CAWANGAN
+    var bankInfo = "";
+    var qrImageHTML = "";
+    
+    if (branchVal === "Pasir Puteh") {
+        bankInfo = "BANK ISLAM<br><strong>080 130 10 082 197</strong><br>PUSAT TUISYEN TERAJU DIDIK";
+        qrImageHTML = `<img src="https://lh3.googleusercontent.com/d/1-6rT6ffmVbbEYavqMGFIO0dqVbx5VlG7" style="max-width: 160px; border-radius: 6px; border: 1px solid #CBD5E1; margin-top: 8px;" alt="DuitNow QR Pasir Puteh">`;
+    } else {
+        bankInfo = "CIMB BANK<br><strong>860 3160 938</strong><br>PUSAT TUISYEN TERAJU DIDIK";
+        qrImageHTML = `<img src="https://lh3.googleusercontent.com/d/1u2kddB3qKviThLXRUmuXqt_RIQCNq4Wg" style="max-width: 160px; border-radius: 6px; border: 1px solid #CBD5E1; margin-top: 8px;" alt="DuitNow QR Pengkalan">`;
+    }
+
+    var formData = {
+        studentStatus: document.querySelector('input[name="studentStatus"]:checked').value,
+        studentName: studentNameVal,
+        icNumber: document.getElementById('icNumber').value,
+        startDate: startDateVal,
+        grade2027: document.getElementById('grade2027').value,
+        otherCategoryDetails: document.getElementById('otherCategoryDetails').value,
+        schoolName: document.getElementById('schoolName').value,
+        schoolClassType: document.getElementById('schoolClassType').value,
+        schoolClassName: document.getElementById('schoolClassName').value,
+        guardianName: document.getElementById('guardianName').value,
+        homeAddress: document.getElementById('homeAddress').value,
+        fatherPhone: document.getElementById('fatherPhone').value,
+        motherPhone: document.getElementById('motherPhone').value,
+        studentPhone: document.getElementById('studentPhone').value,
+        learningMode: currentMode,
+        branchSelect: branchVal,
+        classFormat: document.getElementById('classFormat').value,
+        selectedSubjects: checkedSubjects,
+        mediaConsent: document.querySelector('input[name="mediaConsent"]:checked').value
+    };
+
+    fetch(scriptURL, {
+        method: 'POST',
+        body: JSON.stringify(formData)
+    })
+    .then(response => {
+        var container = document.querySelector('.container');
+        container.innerHTML = `
+            <div style="text-align: center; border-bottom: 2px solid #1E3A8A; padding-bottom: 15px; margin-bottom: 20px;">
+                <img src="https://lh3.googleusercontent.com/d/1WlMIwoIseQSpgEN7-CjLmnIOInagk1o2" style="max-width: 180px; height: auto;" alt="Logo PTTD">
+                <h2 style="color: #1E3A8A; margin: 10px 0 2px 0;">PUSAT TUISYEN TERAJU DIDIK</h2>
+                <p style="font-style: italic; color: #4B5563; margin: 0; font-size: 13px;">"IT ONLY TAKES THAT SMALL STEP TO START"</p>
+                <h3 style="background: #1E3A8A; color: white; display: inline-block; padding: 4px 15px; border-radius: 4px; margin-top: 12px; font-size: 16px;">Pengesahan Kelas Tuisyen (Sesi 2027)</h3>
+            </div>
+
+            <!-- MAKLUMAT PELAJAR & KELAS -->
+            <div style="font-size: 14px; line-height: 1.8; color: #1E293B;">
+                <p style="margin: 4px 0;"><strong>Nama Pelajar:</strong> ${studentNameVal.toUpperCase()}</p>
+                <p style="margin: 4px 0;"><strong>Tahun/Tingkatan:</strong> ${gradeVal.toUpperCase()}</p>
+                <p style="margin: 4px 0;"><strong>Cawangan:</strong> ${branchVal.toUpperCase()}</p>
+                <p style="margin: 4px 0;"><strong>Subjek Diambil:</strong> ${checkedSubjects}</p>
+                <p style="margin: 4px 0;"><strong>Mod Pembelajaran:</strong> ${currentMode} (Bersemuka)</p>
+                <p style="margin: 4px 0;"><strong>Tarikh Mula Kelas:</strong> ${startDateVal}</p>
+            </div>
+
+            <!-- RINCIAN YURAN -->
+            <div style="background: #FFFBEB; border: 1px dashed #F59E0B; border-radius: 8px; padding: 15px; margin-top: 15px;">
+                <h4 style="margin: 0 0 8px 0; color: #B45309;">💰 Maklumat Yuran & Pembayaran</h4>
+                <div style="background: white; border: 1px solid #FCD34D; border-radius: 6px; padding: 10px; font-family: monospace; font-size: 13px; white-space: pre-line;">
+                    ${feeText}
+                </div>
+            </div>
+
+            <!-- MAKLUMAT PERBANKAN & DUITNOW QR -->
+            <div style="background: #EFF6FF; border: 1px solid #BFDBFE; border-radius: 8px; padding: 15px; margin-top: 15px; text-align: center;">
+                <h4 style="margin: 0 0 6px 0; color: #1E3A8A;">🏦 Maklumat Perbankan PTTD (${branchVal})</h4>
+                <div style="font-size: 14px; color: #1E293B; margin-bottom: 8px;">
+                    ${bankInfo}
+                </div>
+                <div>
+                    ${qrImageHTML}
+                </div>
+                <small style="display: block; color: #64748B; margin-top: 4px;">Sila simpan resit pembayaran untuk rujukan pihak pengurusan.</small>
+            </div>
+
+            <!-- NOTIS PENGHANTARAN JADUAL & PERATURAN -->
+            <div style="background: #F8FAFC; border: 1px solid #E2E8F0; border-radius: 8px; padding: 12px; margin-top: 15px; text-align: center; font-size: 13px; color: #475569;">
+                📲 <strong>Jadual Kelas, Kalendar Akademik 2027 & Peraturan Tuisyen</strong> akan dihantar terus ke nombor WhatsApp anda secara rasmi tidak lama lagi.
+            </div>
+
+            <div style="margin-top: 20px; text-align: center;">
+                <button onclick="window.print()" style="background: #1E3A8A; color: white; border: none; padding: 12px 20px; font-weight: bold; border-radius: 6px; cursor: pointer;">
+                    🖨️ Cetak / Simpan Pengesahan Kelas (PDF)
+                </button>
+            </div>
+        `;
+    })
+    .catch(error => {
+        alert('Ralat semasa menghantar borang: ' + error.message);
+        btnSubmit.innerText = 'Hantar Pendaftaran PTTD';
+        btnSubmit.disabled = false;
+    });
+});
+</script>
+
+</body>
+</html>
