@@ -89,6 +89,7 @@
             white-space: pre-line; 
         }
         
+        /* FIX SKROL TERMA & SYARAT */
         .tnc-container { 
             background: #F8FAFC; 
             border: 1px solid #E2E8F0; 
@@ -96,11 +97,12 @@
             padding: 15px; 
             font-size: 13px; 
             color: #334155; 
-            max-height: 250px; 
-            overflow-y: auto; 
+            max-height: 200px; 
+            overflow-y: scroll; 
             -webkit-overflow-scrolling: touch; 
             margin-top: 10px; 
             line-height: 1.6; 
+            touch-action: pan-y;
         }
         .tnc-container h5 { margin: 12px 0 4px 0; color: var(--primary); font-size: 13px; }
         .tnc-container ol, .tnc-container ul { margin: 0; padding-left: 20px; }
@@ -126,7 +128,7 @@
 
     <form id="pttdForm">
 
-        <!-- 1. MAKLUMAT IBU BAPA / PENJAGA (DIISI SEKALI SAHAJA) -->
+        <!-- 1. MAKLUMAT IBU BAPA / PENJAGA -->
         <div class="section-title">1. Maklumat Ibu / Bapa / Penjaga</div>
         <div class="grid">
             <div class="form-group full">
@@ -228,7 +230,21 @@
 var scriptURL = 'https://script.google.com/macros/s/AKfycbyEte8xaAluH_sX3tAxcKi2umpyrQNhvJ-tb6HHgs6pnwr3nmPi-Z9v8mZgt5IKkFo/exec';
 var activeChildCount = 1;
 
-var subjectsData = {
+// DATABASE SUBJEK PTTD
+var subjectsDataRegular = {
+    "Membaca": ["Membaca BM", "Membaca BI"],
+    "Tahun 3": ["Bahasa Inggeris", "Matematik"],
+    "Tahun 4": ["Bahasa Melayu", "Bahasa Inggeris", "Matematik", "Sains", "Sejarah"],
+    "Tahun 5": ["Bahasa Melayu", "Bahasa Inggeris", "Matematik", "Sains", "Sejarah"],
+    "Tahun 6": ["Bahasa Melayu", "Bahasa Inggeris", "Matematik", "Sains", "Sejarah"],
+    "Form 1": ["Bahasa Melayu", "Bahasa Inggeris", "Matematik", "Sains", "Sejarah"],
+    "Form 2": ["Bahasa Melayu", "Bahasa Inggeris", "Matematik", "Sains", "Sejarah", "Geografi"],
+    "Form 3": ["Bahasa Melayu", "Bahasa Inggeris", "Matematik", "Sains", "Sejarah", "Geografi"],
+    "Form 4": ["Bahasa Melayu", "Bahasa Inggeris", "Matematik", "Sains", "Sejarah", "Matematik Tambahan", "Fizik", "Kimia", "Biologi", "Perniagaan", "Prinsip Akaun"],
+    "Form 5": ["Bahasa Melayu", "Bahasa Inggeris", "Matematik", "Sains", "Sejarah", "Matematik Tambahan", "Fizik", "Kimia", "Biologi", "Perniagaan", "Prinsip Akaun"]
+};
+
+var subjectsDataFull = {
     "Membaca": ["Membaca BM", "Membaca BI"],
     "Tahun 3": ["Bahasa Inggeris", "Matematik", "Bahasa Melayu", "Sains", "Sejarah"],
     "Tahun 4": ["Bahasa Melayu", "Bahasa Inggeris", "Matematik", "Sains", "Sejarah"],
@@ -338,8 +354,9 @@ function renderChildBlocks() {
                 </div>
             </div>
 
+            <!-- PEMBETULAN LABEL PILIHAN PAKEJ SUBJEK -> PEMILIHAN SUBJEK -->
             <div id="packageChoiceSection_${i}" class="form-group full" style="margin-top: 15px; display:none;">
-                <label>Pilihan Pakej Subjek *</label>
+                <label>Pemilihan Subjek *</label>
                 <select id="packageSelect_${i}" onchange="handleChildPackageChange(${i})">
                 </select>
             </div>
@@ -353,7 +370,7 @@ function renderChildBlocks() {
                 </div>
             </div>
 
-            <!-- MUAT NAIK DOKUMEN KHUSUS ANAK KE-i -->
+            <!-- DOKUMEN MUAT NAIK ANAK KE-i -->
             <div class="file-upload-box grid">
                 <div class="form-group">
                     <label>1. Salinan IC Pelajar (Anak Ke-${i}) - Pilihan</label>
@@ -459,22 +476,24 @@ function loadSubjectsForChild(index) {
     container.innerHTML = "";
     pkgSelect.innerHTML = "";
     
+    // PILIHAN SUBJEK IKUT SAIZ KELAS (REGULAR VS PERSONAL)
+    var list = (format === "Regular") ? (subjectsDataRegular[grade] || []) : (subjectsDataFull[grade] || []);
+
     if (grade && format === "Regular") {
         pkgSec.style.display = "block";
         if (grade === "Form 4" || grade === "Form 5") {
             pkgSelect.innerHTML = '<option value="PakejA">Pakej A (5 Subjek Teras)</option>' +
                                  '<option value="PakejB">Pakej B (5 Subjek Sains Tulen)</option>' +
-                                 '<option value="Custom">Pilih Subjek Individu (Custom)</option>';
+                                 '<option value="Custom">Pilihan Subjek (Custom)</option>';
         } else {
-            var allSubCount = (subjectsData[grade] || []).length;
+            var allSubCount = list.length;
             pkgSelect.innerHTML = '<option value="PakejAll">Semua Subjek (Pakej ' + allSubCount + ' Subjek)</option>' +
-                                 '<option value="Custom">Pilih Subjek Individu (Custom)</option>';
+                                 '<option value="Custom">Pilihan Subjek (Custom)</option>';
         }
     } else {
         pkgSec.style.display = "none";
     }
 
-    var list = subjectsData[grade] || [];
     list.forEach(function(subjek) {
         var label = document.createElement('label');
         label.innerHTML = '<input type="checkbox" class="subj-item-' + index + '" value="' + subjek + '" onchange="calculateTotalFees()"> ' + subjek;
