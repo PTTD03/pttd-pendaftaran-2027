@@ -69,7 +69,6 @@
         .age-badge { background: #FEF3C7; color: #92400E; padding: 4px 8px; border-radius: 4px; font-weight: bold; display: inline-block; margin-top: 5px; font-size: 12px; width: fit-content; }
         .verified-badge { background: #D1FAE5; color: #065F46; border: 1px solid #10B981; padding: 5px 10px; border-radius: 6px; font-weight: bold; display: none; margin-top: 6px; font-size: 12px; }
 
-        /* KOTAK CARIAN ALTERNATIF NO. FON IBU/AYAH */
         .alt-phone-search {
             background: #FEF2F2;
             border: 1px dashed #F87171;
@@ -144,7 +143,6 @@
 <body>
 
 <div class="container" id="mainContainer">
-    <!-- LOGO HEADER PTTD -->
     <div class="logo-container">
         <img src="https://lh3.googleusercontent.com/d/1WlMIwoIseQSpgEN7-CjLmnIOInagk1o2" class="logo-img" alt="Logo Pusat Tuisyen Teraju Didik">
     </div>
@@ -168,18 +166,18 @@
             </div>
 
             <div class="form-group">
-                <label>No. Telefon Ayah *</label>
-                <input type="tel" id="fatherPhone" placeholder="Contoh: 0123456789" required>
+                <label>No. Telefon Ayah / Penjaga 1 * (Letak - jika tiada)</label>
+                <input type="text" id="fatherPhone" maxlength="11" oninput="enforceLocalPhoneOrDash(this)" placeholder="Contoh: 0123456789 atau -" required>
             </div>
 
             <div class="form-group">
-                <label>No. Telefon Ibu *</label>
-                <input type="tel" id="motherPhone" placeholder="Contoh: 0198765432" required>
+                <label>No. Telefon Ibu / Penjaga 2 * (Letak - jika tiada)</label>
+                <input type="text" id="motherPhone" maxlength="11" oninput="enforceLocalPhoneOrDash(this)" placeholder="Contoh: 0198765432 atau -" required>
             </div>
 
             <div class="form-group full">
                 <label>No. Telefon Rumah (Jika Ada)</label>
-                <input type="tel" id="homePhone" placeholder="Contoh: 053123456">
+                <input type="tel" id="homePhone" inputmode="numeric" maxlength="10" pattern="^0[0-9]{8,9}$" title="Masukkan nombor telefon bermula dengan 0 tanpa tanda sengkang" oninput="enforceDigitsOnly(this)" placeholder="Contoh: 053123456">
             </div>
         </div>
 
@@ -195,7 +193,6 @@
             </div>
         </div>
 
-        <!-- BEKAS DINAMIK UNTUK BLOK MAKLUMAT ANAK & DOKUMEN -->
         <div id="childrenContainer"></div>
 
         <div class="fee-card">
@@ -292,7 +289,6 @@
             </ul>
         </div>
 
-        <!-- PENGESAHAN IBU BAPA & KEBENARAN MEDIA -->
         <div class="agreement-box">
             <label style="font-weight: bold; margin-bottom: 8px; display: block;">Pengesahan & Persetujuan *</label>
             <label class="checkbox-item">
@@ -324,8 +320,27 @@
 <script>
 var scriptURL = 'https://script.google.com/macros/s/AKfycbyEte8xaAluH_sX3tAxcKi2umpyrQNhvJ-tb6HHgs6pnwr3nmPi-Z9v8mZgt5IKkFo/exec';
 var activeChildCount = 1;
-var phoneSearchAttempts = {};   // Mengira bilangan cubaan carian telefon bagi setiap anak (maksimum 3)
-var verifiedOldStudent = {};    // Menyimpan status sama ada rekod lama sah ditemui (true = RM 0, false = RM 25)
+var phoneSearchAttempts = {};
+var verifiedOldStudent = {};
+
+// Hanya benarkan angka 0-9 (untuk IC, No. Tel Rumah, No. Tel Pelajar)
+function enforceDigitsOnly(inputEl) {
+    inputEl.value = inputEl.value.replace(/[^0-9]/g, '');
+}
+
+// Benarkan nombor 0-9 ATAU tanda '-' sahaja (untuk No. Tel Ayah & Ibu)
+function enforceLocalPhoneOrDash(inputEl) {
+    var val = inputEl.value.trim();
+    if (val === '-') {
+        inputEl.value = '-';
+    } else {
+        inputEl.value = val.replace(/[^0-9]/g, '');
+    }
+}
+
+function isValidLocalPhone(phoneStr) {
+    return /^01[0-9]{8,9}$/.test(phoneStr);
+}
 
 var subjectsDataRegular = {
     "Membaca": ["Membaca BM", "Membaca BI"],
@@ -389,17 +404,16 @@ function renderChildBlocks() {
                 <div class="form-group">
                     <label>No. MyKad / Kad Pengenalan *</label>
                     <div class="ic-search-box">
-                        <input type="text" id="icNumber_${i}" placeholder="Contoh: 120514085431" oninput="calculateAgeForChild(${i})" style="width: 100%;" required>
+                        <input type="text" id="icNumber_${i}" inputmode="numeric" maxlength="12" placeholder="Contoh: 120514085431" oninput="enforceDigitsOnly(this); calculateAgeForChild(${i});" style="width: 100%;" required>
                         <button type="button" id="btnCheckIC_${i}" class="btn-search" style="display:none;" onclick="checkICForChild(${i})">Semak</button>
                     </div>
                     <div id="ageDisplay_${i}" class="age-badge" style="display:none;">Umur Sesi 2027: <span id="ageValue_${i}">-</span></div>
                     <div id="verifiedBadge_${i}" class="verified-badge">✅ Rekod Pelajar Lama Disahkan (Yuran Pendaftaran RM 0)</div>
 
-                    <!-- KOTAK CARIAN ALTERNATIF NO. FON IBU/AYAH (MAKSIMUM 3 CUBAAN) -->
                     <div id="altPhoneSearch_${i}" class="alt-phone-search">
-                        <div class="alt-phone-title" id="altPhoneTitle_${i}">⚠️ No. IC tidak ditemui. Cuba semak guna No. Telefon Ibu / Ayah:</div>
+                        <div class="alt-phone-title" id="altPhoneTitle_${i}">⚠️ No. IC tidak ditemui. Cuba semak guna No. Telefon Ibu / Ayah (Format 0123456789):</div>
                         <div class="ic-search-box" id="altPhoneInputGroup_${i}">
-                            <input type="tel" id="altPhoneInput_${i}" placeholder="Contoh: 0123456789" style="width: 100%; font-size: 13px; padding: 7px;">
+                            <input type="tel" id="altPhoneInput_${i}" inputmode="numeric" maxlength="11" oninput="enforceDigitsOnly(this)" placeholder="Contoh: 0123456789" style="width: 100%; font-size: 13px; padding: 7px;">
                             <button type="button" id="btnCheckAltPhone_${i}" class="btn-search" style="font-size: 12px; padding: 0 10px;" onclick="checkPhoneForChild(${i})">Cari No. Fon</button>
                         </div>
                         <div id="altPhoneResults_${i}"></div>
@@ -442,8 +456,8 @@ function renderChildBlocks() {
                 </div>
 
                 <div class="form-group">
-                    <label>No. Tel Pelajar (Jika Ada)</label>
-                    <input type="tel" id="studentPhone_${i}" placeholder="Contoh: 0112345678">
+                    <label>No. Tel Pelajar (Jika Ada - Format 0123456789)</label>
+                    <input type="tel" id="studentPhone_${i}" inputmode="numeric" maxlength="11" pattern="^01[0-9]{8,9}$" title="Masukkan nombor telefon bermula dengan 01 tanpa +60" oninput="enforceDigitsOnly(this)" placeholder="Contoh: 0112345678">
                 </div>
 
                 <div class="form-group">
@@ -543,9 +557,17 @@ function calculateAgeForChild(index) {
     }
 }
 
-// FUNGSI AUTO-ISI MAKLUMAT PELAJAR LAMA APABILA SAH DIJUMPAI
+function normalizeDisplayPhone(raw) {
+    if (!raw || raw.toString().trim() === '-') return '-';
+    var digits = raw.toString().replace(/[^0-9]/g, '');
+    if (digits && digits.charAt(0) !== '0') {
+        digits = '0' + digits;
+    }
+    return digits;
+}
+
 function populateOldStudentData(index, record) {
-    verifiedOldStudent[index] = true; // Sah pelajar lama -> Yuran Pendaftaran RM 0
+    verifiedOldStudent[index] = true;
     document.getElementById('verifiedBadge_' + index).style.display = 'inline-block';
 
     document.getElementById('studentName_' + index).value = record.studentName || '';
@@ -554,19 +576,18 @@ function populateOldStudentData(index, record) {
         calculateAgeForChild(index);
     }
     document.getElementById('schoolName_' + index).value = record.schoolName || '';
-    document.getElementById('studentPhone_' + index).value = record.studentPhone || '';
+    var stuPhone = normalizeDisplayPhone(record.studentPhone);
+    document.getElementById('studentPhone_' + index).value = (stuPhone === '-') ? '' : stuPhone;
 
-    // Isi maklumat penjaga di atas jika masih kosong
     if (!document.getElementById('guardianName').value) document.getElementById('guardianName').value = record.guardianName || '';
-    if (!document.getElementById('fatherPhone').value) document.getElementById('fatherPhone').value = record.fatherPhone || '';
-    if (!document.getElementById('motherPhone').value) document.getElementById('motherPhone').value = record.motherPhone || '';
+    if (!document.getElementById('fatherPhone').value && record.fatherPhone) document.getElementById('fatherPhone').value = normalizeDisplayPhone(record.fatherPhone);
+    if (!document.getElementById('motherPhone').value && record.motherPhone) document.getElementById('motherPhone').value = normalizeDisplayPhone(record.motherPhone);
     if (!document.getElementById('homeAddress').value) document.getElementById('homeAddress').value = record.homeAddress || '';
 
     document.getElementById('altPhoneSearch_' + index).style.display = 'none';
     calculateTotalFees();
 }
 
-// 1. SEMAK MELALUI NO. IC (DAN AUTO-SEMAK NO. FON BAHAGIAN 1 JIKA IC TAK JUMPA)
 function checkICForChild(index) {
     var ic = document.getElementById('icNumber_' + index).value;
     if (!ic) { alert('Sila masukkan No. IC.'); return; }
@@ -587,17 +608,18 @@ function checkICForChild(index) {
             verifiedOldStudent[index] = false;
             document.getElementById('verifiedBadge_' + index).style.display = 'none';
 
-            // Ambil No. Telefon Ayah & Ibu yang sudah diisi di Bahagian 1
             var fPhone = document.getElementById('fatherPhone').value.trim();
             var mPhone = document.getElementById('motherPhone').value.trim();
+            var validF = isValidLocalPhone(fPhone) ? fPhone : '';
+            var validM = isValidLocalPhone(mPhone) ? mPhone : '';
 
-            if (fPhone || mPhone) {
+            if (validF || validM) {
                 btn.innerText = 'Semak No. Penjaga...';
-                autoCheckParentPhones(index, fPhone, mPhone, btn);
+                autoCheckParentPhones(index, validF, validM, btn);
             } else {
                 btn.innerText = 'Semak';
                 btn.disabled = false;
-                showAltPhoneBox(index, '⚠️ No. IC tidak ditemui. Sila masukkan No. Telefon Ibu / Ayah untuk semakan (Maksimum 3 cubaan):');
+                showAltPhoneBox(index, '⚠️ No. IC tidak ditemui. Sila masukkan No. Telefon Ibu / Ayah (Contoh: 0123456789):');
                 calculateTotalFees();
             }
         }
@@ -609,7 +631,6 @@ function checkICForChild(index) {
     });
 }
 
-// FUNGSI AUTO-SEMAK NOMBOR TELEFON AYAH & IBU DARI BAHAGIAN 1
 function autoCheckParentPhones(index, fPhone, mPhone, btn) {
     var queries = [];
     if (fPhone) queries.push(fetch(scriptURL + '?phone=' + encodeURIComponent(fPhone)).then(r => r.json()));
@@ -620,7 +641,6 @@ function autoCheckParentPhones(index, fPhone, mPhone, btn) {
         btn.innerText = 'Semak';
         btn.disabled = false;
 
-        // Gabungkan semua rekod yang ditemui daripada nombor Ayah atau Ibu (elak duplikasi IC)
         var allMatches = [];
         var seenICs = {};
         results.forEach(res => {
@@ -642,6 +662,7 @@ function autoCheckParentPhones(index, fPhone, mPhone, btn) {
             var altBox = document.getElementById('altPhoneSearch_' + index);
             var resultsDiv = document.getElementById('altPhoneResults_' + index);
             altBox.style.display = 'block';
+            document.getElementById('altPhoneInputGroup_' + index).style.display = 'none';
             document.getElementById('altPhoneTitle_' + index).innerText = '✅ Ditemui ' + allMatches.length + ' rekod anak di bawah No. Telefon Ibu/Ayah anda:';
             resultsDiv.innerHTML = '';
 
@@ -657,16 +678,15 @@ function autoCheckParentPhones(index, fPhone, mPhone, btn) {
                 resultsDiv.appendChild(itemBtn);
             });
         } else {
-            // Kedua-dua nombor di Bahagian 1 pun tidak ditemui -> Buka kotak cubaan nombor lain (2x cubaan)
             phoneSearchAttempts[index] = 1;
-            showAltPhoneBox(index, '⚠️ No. IC & No. Telefon Ayah/Ibu di atas tidak ditemui. Anda ada 2 lagi cubaan untuk masukkan nombor telefon lama yang lain:');
+            showAltPhoneBox(index, '⚠️ No. IC & No. Telefon Ayah/Ibu di atas tidak ditemui. Anda ada 2 lagi cubaan untuk masukkan nombor telefon lama yang lain (Contoh: 0123456789):');
             calculateTotalFees();
         }
     })
     .catch(err => {
         btn.innerText = 'Semak';
         btn.disabled = false;
-        showAltPhoneBox(index, '⚠️ Ralat semakan automatik. Sila masukkan No. Telefon Ibu / Ayah secara manual:');
+        showAltPhoneBox(index, '⚠️ Ralat semakan automatik. Sila masukkan No. Telefon Ibu / Ayah (Contoh: 0123456789):');
     });
 }
 
@@ -681,13 +701,15 @@ function showAltPhoneBox(index, customTitle) {
     document.getElementById('altPhoneInput_' + index).value = '';
 }
 
-// 2. SEMAK ALTERNATIF MELALUI NO. TELEFON MANUAL (MAKSIMUM 3 CUBAAN KESELURUHAN)
 function checkPhoneForChild(index) {
     var maxAttempts = 3;
     if (phoneSearchAttempts[index] >= maxAttempts) return;
 
-    var phone = document.getElementById('altPhoneInput_' + index).value;
-    if (!phone) { alert('Sila masukkan No. Telefon Ayah atau Ibu.'); return; }
+    var phone = document.getElementById('altPhoneInput_' + index).value.trim();
+    if (!isValidLocalPhone(phone)) {
+        alert('Sila masukkan nombor telefon yang sah bermula dengan 01 (Contoh: 0123456789, tanpa +60 atau simbol).');
+        return;
+    }
 
     var btn = document.getElementById('btnCheckAltPhone_' + index);
     var resultsDiv = document.getElementById('altPhoneResults_' + index);
@@ -907,6 +929,25 @@ function calculateTotalFees() {
 document.getElementById('pttdForm').addEventListener('submit', function(e) {
     e.preventDefault();
     
+    var fVal = document.getElementById('fatherPhone').value.trim();
+    var mVal = document.getElementById('motherPhone').value.trim();
+
+    var fValid = isValidLocalPhone(fVal);
+    var mValid = isValidLocalPhone(mVal);
+
+    if (!fValid && !mValid) {
+        alert('Sila masukkan sekurang-kurangnya SATU nombor telefon yang sah (bermula dengan 01, contoh: 0123456789) pada ruangan Ayah atau Ibu/Penjaga.');
+        return;
+    }
+    if (fVal !== '-' && !fValid) {
+        alert('Format No. Telefon Ayah tidak sah. Sila masukkan nombor bermula dengan 01 (tanpa +60) atau letakkan tanda - jika tiada.');
+        return;
+    }
+    if (mVal !== '-' && !mValid) {
+        alert('Format No. Telefon Ibu tidak sah. Sila masukkan nombor bermula dengan 01 (tanpa +60) atau letakkan tanda - jika tiada.');
+        return;
+    }
+
     var btnSubmit = document.querySelector('.btn-submit');
     btnSubmit.innerText = 'Sedang Mengirim Pendaftaran ' + activeChildCount + ' Orang Anak...';
     btnSubmit.disabled = true;
@@ -928,8 +969,8 @@ document.getElementById('pttdForm').addEventListener('submit', function(e) {
             schoolClassType: document.getElementById('schoolClassType_' + i).value,
             guardianName: document.getElementById('guardianName').value,
             homeAddress: document.getElementById('homeAddress').value,
-            fatherPhone: document.getElementById('fatherPhone').value,
-            motherPhone: document.getElementById('motherPhone').value,
+            fatherPhone: fVal,
+            motherPhone: mVal,
             studentPhone: document.getElementById('studentPhone_' + i).value,
             learningMode: 'FIZIKAL',
             branchSelect: document.getElementById('branchSelect_' + i).value,
