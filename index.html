@@ -67,6 +67,7 @@
         .ic-search-box { display: flex; gap: 8px; }
         .btn-search { background: var(--secondary); color: white; border: none; padding: 0 15px; border-radius: 6px; font-weight: bold; cursor: pointer; white-space: nowrap; }
         .age-badge { background: #FEF3C7; color: #92400E; padding: 4px 8px; border-radius: 4px; font-weight: bold; display: inline-block; margin-top: 5px; font-size: 12px; width: fit-content; }
+        .verified-badge { background: #D1FAE5; color: #065F46; border: 1px solid #10B981; padding: 5px 10px; border-radius: 6px; font-weight: bold; display: none; margin-top: 6px; font-size: 12px; }
 
         /* KOTAK CARIAN ALTERNATIF NO. FON IBU/AYAH */
         .alt-phone-search {
@@ -323,6 +324,8 @@
 <script>
 var scriptURL = 'https://script.google.com/macros/s/AKfycbyEte8xaAluH_sX3tAxcKi2umpyrQNhvJ-tb6HHgs6pnwr3nmPi-Z9v8mZgt5IKkFo/exec';
 var activeChildCount = 1;
+var phoneSearchAttempts = {};   // Mengira bilangan cubaan carian telefon bagi setiap anak (maksimum 3)
+var verifiedOldStudent = {};    // Menyimpan status sama ada rekod lama sah ditemui (true = RM 0, false = RM 25)
 
 var subjectsDataRegular = {
     "Membaca": ["Membaca BM", "Membaca BI"],
@@ -355,6 +358,9 @@ function renderChildBlocks() {
     container.innerHTML = '';
 
     for (var i = 1; i <= activeChildCount; i++) {
+        phoneSearchAttempts[i] = 0;
+        verifiedOldStudent[i] = false;
+
         var card = document.createElement('div');
         card.className = 'child-card-block';
         card.id = 'childCard_' + i;
@@ -367,10 +373,10 @@ function renderChildBlocks() {
 
             <div class="student-type">
                 <label class="radio-card active" id="lblBaru_${i}">
-                    <input type="radio" name="studentStatus_${i}" value="BARU" checked onclick="toggleChildStatus(${i}, 'BARU')"> Pelajar Baharu
+                    <input type="radio" name="studentStatus_${i}" id="radioBaru_${i}" value="BARU" checked onclick="toggleChildStatus(${i}, 'BARU')"> Pelajar Baharu
                 </label>
                 <label class="radio-card" id="lblLama_${i}">
-                    <input type="radio" name="studentStatus_${i}" value="LAMA" onclick="toggleChildStatus(${i}, 'LAMA')"> Pelajar Lama (Semak IC)
+                    <input type="radio" name="studentStatus_${i}" id="radioLama_${i}" value="LAMA" onclick="toggleChildStatus(${i}, 'LAMA')"> Pelajar Lama (Semak IC)
                 </label>
             </div>
 
@@ -387,11 +393,12 @@ function renderChildBlocks() {
                         <button type="button" id="btnCheckIC_${i}" class="btn-search" style="display:none;" onclick="checkICForChild(${i})">Semak</button>
                     </div>
                     <div id="ageDisplay_${i}" class="age-badge" style="display:none;">Umur Sesi 2027: <span id="ageValue_${i}">-</span></div>
+                    <div id="verifiedBadge_${i}" class="verified-badge">✅ Rekod Pelajar Lama Disahkan (Yuran Pendaftaran RM 0)</div>
 
-                    <!-- KOTAK CARIAN ALTERNATIF NO. FON IBU/AYAH (KELUAR BILA IC TAK JUMPA) -->
+                    <!-- KOTAK CARIAN ALTERNATIF NO. FON IBU/AYAH (MAKSIMUM 3 CUBAAN) -->
                     <div id="altPhoneSearch_${i}" class="alt-phone-search">
-                        <div class="alt-phone-title">⚠️ No. IC tidak ditemui. Cuba semak guna No. Telefon Ibu / Ayah:</div>
-                        <div class="ic-search-box">
+                        <div class="alt-phone-title" id="altPhoneTitle_${i}">⚠️ No. IC tidak ditemui. Cuba semak guna No. Telefon Ibu / Ayah:</div>
+                        <div class="ic-search-box" id="altPhoneInputGroup_${i}">
                             <input type="tel" id="altPhoneInput_${i}" placeholder="Contoh: 0123456789" style="width: 100%; font-size: 13px; padding: 7px;">
                             <button type="button" id="btnCheckAltPhone_${i}" class="btn-search" style="font-size: 12px; padding: 0 10px;" onclick="checkPhoneForChild(${i})">Cari No. Fon</button>
                         </div>
@@ -509,8 +516,14 @@ function toggleChildStatus(index, type) {
     document.getElementById('lblLama_' + index).classList.toggle('active', type === 'LAMA');
     var btnCheck = document.getElementById('btnCheckIC_' + index);
     var altBox = document.getElementById('altPhoneSearch_' + index);
+    
     btnCheck.style.display = (type === 'LAMA') ? 'block' : 'none';
-    if (type === 'BARU' && altBox) altBox.style.display = 'none';
+    
+    if (type === 'BARU') {
+        verifiedOldStudent[index] = false;
+        document.getElementById('verifiedBadge_' + index).style.display = 'none';
+        if (altBox) altBox.style.display = 'none';
+    }
     calculateTotalFees();
 }
 
@@ -530,8 +543,11 @@ function calculateAgeForChild(index) {
     }
 }
 
-// FUNGSI AUTO-ISI MAKLUMAT PELAJAR LAMA
+// FUNGSI AUTO-ISI MAKLUMAT PELAJAR LAMA APABILA SAH DIJUMPAI
 function populateOldStudentData(index, record) {
+    verifiedOldStudent[index] = true; // Sah pelajar lama -> Yuran Pendaftaran RM 0
+    document.getElementById('verifiedBadge_' + index).style.display = 'inline-block';
+
     document.getElementById('studentName_' + index).value = record.studentName || '';
     if (record.icNumber) {
         document.getElementById('icNumber_' + index).value = record.icNumber;
@@ -550,7 +566,7 @@ function populateOldStudentData(index, record) {
     calculateTotalFees();
 }
 
-// 1. SEMAK MELALUI NO. IC
+// 1. SEMAK MELALUI NO. IC (DAN AUTO-SEMAK NO. FON BAHAGIAN 1 JIKA IC TAK JUMPA)
 function checkICForChild(index) {
     var ic = document.getElementById('icNumber_' + index).value;
     if (!ic) { alert('Sila masukkan No. IC.'); return; }
@@ -562,21 +578,27 @@ function checkICForChild(index) {
     fetch(scriptURL + '?ic=' + encodeURIComponent(ic))
     .then(response => response.json())
     .then(data => {
-        btn.innerText = 'Semak';
-        btn.disabled = false;
-
         if (data.found) {
-            alert('Rekod Pelajar Lama Ditemui! Maklumat (termasuk No. Tel Pelajar) diisi automatik.');
+            btn.innerText = 'Semak';
+            btn.disabled = false;
+            alert('Rekod Pelajar Lama Ditemui! Maklumat diisi automatik dan Yuran Pendaftaran dikecualikan (RM 0).');
             populateOldStudentData(index, data);
         } else {
-            // Paparkan kotak carian alternatif menggunakan No. Telefon Ibu / Ayah
-            var altBox = document.getElementById('altPhoneSearch_' + index);
-            altBox.style.display = 'block';
-            
-            // Pre-fill nombor telefon jika ibu bapa sudah isi di Bahagian 1
-            var existingPhone = document.getElementById('fatherPhone').value || document.getElementById('motherPhone').value;
-            if (existingPhone) {
-                document.getElementById('altPhoneInput_' + index).value = existingPhone;
+            verifiedOldStudent[index] = false;
+            document.getElementById('verifiedBadge_' + index).style.display = 'none';
+
+            // Ambil No. Telefon Ayah & Ibu yang sudah diisi di Bahagian 1
+            var fPhone = document.getElementById('fatherPhone').value.trim();
+            var mPhone = document.getElementById('motherPhone').value.trim();
+
+            if (fPhone || mPhone) {
+                btn.innerText = 'Semak No. Penjaga...';
+                autoCheckParentPhones(index, fPhone, mPhone, btn);
+            } else {
+                btn.innerText = 'Semak';
+                btn.disabled = false;
+                showAltPhoneBox(index, '⚠️ No. IC tidak ditemui. Sila masukkan No. Telefon Ibu / Ayah untuk semakan (Maksimum 3 cubaan):');
+                calculateTotalFees();
             }
         }
     })
@@ -587,8 +609,83 @@ function checkICForChild(index) {
     });
 }
 
-// 2. SEMAK ALTERNATIF MELALUI NO. TELEFON IBU / AYAH
+// FUNGSI AUTO-SEMAK NOMBOR TELEFON AYAH & IBU DARI BAHAGIAN 1
+function autoCheckParentPhones(index, fPhone, mPhone, btn) {
+    var queries = [];
+    if (fPhone) queries.push(fetch(scriptURL + '?phone=' + encodeURIComponent(fPhone)).then(r => r.json()));
+    if (mPhone && mPhone !== fPhone) queries.push(fetch(scriptURL + '?phone=' + encodeURIComponent(mPhone)).then(r => r.json()));
+
+    Promise.all(queries)
+    .then(results => {
+        btn.innerText = 'Semak';
+        btn.disabled = false;
+
+        // Gabungkan semua rekod yang ditemui daripada nombor Ayah atau Ibu (elak duplikasi IC)
+        var allMatches = [];
+        var seenICs = {};
+        results.forEach(res => {
+            if (res.found && res.matches) {
+                res.matches.forEach(rec => {
+                    var key = rec.icNumber || rec.studentName;
+                    if (!seenICs[key]) {
+                        seenICs[key] = true;
+                        allMatches.push(rec);
+                    }
+                });
+            }
+        });
+
+        if (allMatches.length === 1) {
+            alert('No. IC tidak ditemui, tetapi rekod ditemui melalui No. Telefon Ibu/Ayah di atas! Maklumat diisi automatik (Yuran Pendaftaran RM 0).');
+            populateOldStudentData(index, allMatches[0]);
+        } else if (allMatches.length > 1) {
+            var altBox = document.getElementById('altPhoneSearch_' + index);
+            var resultsDiv = document.getElementById('altPhoneResults_' + index);
+            altBox.style.display = 'block';
+            document.getElementById('altPhoneTitle_' + index).innerText = '✅ Ditemui ' + allMatches.length + ' rekod anak di bawah No. Telefon Ibu/Ayah anda:';
+            resultsDiv.innerHTML = '';
+
+            allMatches.forEach(function(rec) {
+                var itemBtn = document.createElement('button');
+                itemBtn.type = 'button';
+                itemBtn.className = 'match-item-btn';
+                itemBtn.innerText = '👤 ' + rec.studentName + (rec.icNumber ? ' (IC: ' + rec.icNumber + ')' : '');
+                itemBtn.onclick = function() {
+                    populateOldStudentData(index, rec);
+                    alert('Maklumat ' + rec.studentName + ' telah diisi automatik (Yuran Pendaftaran RM 0)!');
+                };
+                resultsDiv.appendChild(itemBtn);
+            });
+        } else {
+            // Kedua-dua nombor di Bahagian 1 pun tidak ditemui -> Buka kotak cubaan nombor lain (2x cubaan)
+            phoneSearchAttempts[index] = 1;
+            showAltPhoneBox(index, '⚠️ No. IC & No. Telefon Ayah/Ibu di atas tidak ditemui. Anda ada 2 lagi cubaan untuk masukkan nombor telefon lama yang lain:');
+            calculateTotalFees();
+        }
+    })
+    .catch(err => {
+        btn.innerText = 'Semak';
+        btn.disabled = false;
+        showAltPhoneBox(index, '⚠️ Ralat semakan automatik. Sila masukkan No. Telefon Ibu / Ayah secara manual:');
+    });
+}
+
+function showAltPhoneBox(index, customTitle) {
+    var altBox = document.getElementById('altPhoneSearch_' + index);
+    altBox.style.display = 'block';
+    document.getElementById('altPhoneInputGroup_' + index).style.display = 'flex';
+    document.getElementById('altPhoneResults_' + index).innerHTML = '';
+    if (customTitle) {
+        document.getElementById('altPhoneTitle_' + index).innerText = customTitle;
+    }
+    document.getElementById('altPhoneInput_' + index).value = '';
+}
+
+// 2. SEMAK ALTERNATIF MELALUI NO. TELEFON MANUAL (MAKSIMUM 3 CUBAAN KESELURUHAN)
 function checkPhoneForChild(index) {
+    var maxAttempts = 3;
+    if (phoneSearchAttempts[index] >= maxAttempts) return;
+
     var phone = document.getElementById('altPhoneInput_' + index).value;
     if (!phone) { alert('Sila masukkan No. Telefon Ayah atau Ibu.'); return; }
 
@@ -606,10 +703,9 @@ function checkPhoneForChild(index) {
 
         if (data.found && data.matches && data.matches.length > 0) {
             if (data.matches.length === 1) {
-                alert('Rekod ditemui di bawah No. Telefon tersebut! Maklumat diisi automatik.');
+                alert('Rekod ditemui di bawah No. Telefon tersebut! Maklumat diisi automatik dan Yuran Pendaftaran dikecualikan (RM 0).');
                 populateOldStudentData(index, data.matches[0]);
             } else {
-                // Jika lebih daripada 1 anak di bawah nombor telefon yang sama
                 var promptMsg = document.createElement('div');
                 promptMsg.style.cssText = 'font-size: 12px; color: #065F46; margin-top: 8px; font-weight: bold;';
                 promptMsg.innerText = 'Ditemui ' + data.matches.length + ' rekod anak. Sila klik nama anak untuk isi:';
@@ -622,13 +718,35 @@ function checkPhoneForChild(index) {
                     itemBtn.innerText = '👤 ' + rec.studentName + (rec.icNumber ? ' (IC: ' + rec.icNumber + ')' : '');
                     itemBtn.onclick = function() {
                         populateOldStudentData(index, rec);
-                        alert('Maklumat ' + rec.studentName + ' telah diisi automatik!');
+                        alert('Maklumat ' + rec.studentName + ' telah diisi automatik (Yuran Pendaftaran RM 0)!');
                     };
                     resultsDiv.appendChild(itemBtn);
                 });
             }
         } else {
-            resultsDiv.innerHTML = '<div style="font-size: 12px; color: #991B1B; margin-top: 6px;">Tiada rekod ditemui untuk nombor telefon ini. Sila teruskan isi maklumat anak secara manual di bawah (Yuran Pendaftaran tetap RM 0).</div>';
+            phoneSearchAttempts[index]++;
+            var remaining = maxAttempts - phoneSearchAttempts[index];
+
+            if (remaining > 0) {
+                document.getElementById('altPhoneInput_' + index).value = '';
+                document.getElementById('altPhoneInput_' + index).focus();
+                resultsDiv.innerHTML = '<div style="font-size: 12px; color: #B91C1C; margin-top: 6px; font-weight: 600;">❌ Rekod tidak ditemui bagi nombor tersebut. Anda mempunyai <strong>' + remaining + ' lagi cubaan</strong> untuk menyemak nombor telefon lain.</div>';
+            } else {
+                verifiedOldStudent[index] = false;
+                document.getElementById('radioBaru_' + index).checked = true;
+                document.getElementById('lblBaru_' + index).classList.add('active');
+                document.getElementById('lblLama_' + index).classList.remove('active');
+                document.getElementById('btnCheckIC_' + index).style.display = 'none';
+                document.getElementById('altPhoneInputGroup_' + index).style.display = 'none';
+                document.getElementById('altPhoneTitle_' + index).innerText = '⚠️ Rekod Pelajar Lama Tidak Ditemui (3/3 Cubaan Selesai)';
+
+                resultsDiv.innerHTML = '<div style="font-size: 12.5px; color: #7F1D1D; margin-top: 6px; line-height: 1.5; background: #FEE2E2; padding: 8px; border-radius: 6px;">' +
+                    'Rekod pelajar lama tidak ditemui dalam pangkalan data selepas 3 cubaan. Pendaftaran diteruskan dengan kiraan <strong>Yuran Pendaftaran biasa (RM 25)</strong>.<br><br>' +
+                    '📌 <em>Sebarang pemotongan atau pelarasan yuran pendaftaran akan disemak dan disahkan oleh pihak <strong>Admin PTTD</strong> selepas borang dihantar.</em>' +
+                    '</div>';
+                
+                calculateTotalFees();
+            }
         }
     })
     .catch(err => {
@@ -726,11 +844,12 @@ function calculateTotalFees() {
         var gradeSelect = document.getElementById('grade2027_' + i);
         var grade = gradeSelect ? gradeSelect.value : "";
         var checkedSubjects = document.querySelectorAll('.subj-item-' + i + ':checked');
-        var isLama = document.getElementById('lblLama_' + i) ? document.getElementById('lblLama_' + i).classList.contains('active') : false;
+        
+        var isVerifiedLama = verifiedOldStudent[i] === true;
 
         if (!grade || checkedSubjects.length === 0) continue;
 
-        var regFee = isLama ? 0 : 25;
+        var regFee = isVerifiedLama ? 0 : 25;
         var monthlyFee = 0;
         var materialFeeTotal = 0;
         var count = checkedSubjects.length;
@@ -768,7 +887,7 @@ function calculateTotalFees() {
         grandTotalInitial += childTotal;
 
         summaryText += "👤 " + studentName + " (" + grade + ")\n";
-        summaryText += "   • Yuran Pendaftaran = RM " + regFee + (isLama ? " (Pelajar Lama)" : "") + "\n";
+        summaryText += "   • Yuran Pendaftaran = RM " + regFee + (isVerifiedLama ? " (Pelajar Lama Disahkan)" : "") + "\n";
         summaryText += "   • Yuran Bahan = RM " + materialFeeTotal + "\n";
         summaryText += "   • Yuran Bulan Pertama = RM " + monthlyFee + "\n";
         summaryText += "   Jumlah Yuran Permulaan Anak " + ordinalNames[i-1] + " = RM " + childTotal + "\n\n";
@@ -797,9 +916,10 @@ document.getElementById('pttdForm').addEventListener('submit', function(e) {
     
     for (var i = 1; i <= activeChildCount; i++) {
         var checkedSubjects = Array.from(document.querySelectorAll('.subj-item-' + i + ':checked')).map(cb => cb.value).join(', ');
+        var finalStatus = (verifiedOldStudent[i] === true) ? "LAMA" : "BARU";
         
         childrenDataArray.push({
-            studentStatus: document.querySelector('input[name="studentStatus_' + i + '"]:checked').value,
+            studentStatus: finalStatus,
             studentName: document.getElementById('studentName_' + i).value,
             icNumber: document.getElementById('icNumber_' + i).value,
             startDate: document.getElementById('startDate_' + i).value,
