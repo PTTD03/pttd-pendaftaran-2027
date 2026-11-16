@@ -53,16 +53,21 @@
         .radio-card { flex: 1; border: 2px solid #E5E7EB; padding: 10px; border-radius: 8px; text-align: center; cursor: pointer; font-weight: 600; font-size: 14px; }
         .radio-card input { display: none; }
         .radio-card.active { border-color: var(--primary); background: #EFF6FF; color: var(--primary); }
-        
-        .child-selector-box { background: #F1F5F9; border: 1px solid #CBD5E1; border-radius: 10px; padding: 15px; text-align: center; margin-bottom: 20px; }
-        .child-selector-title { font-weight: bold; color: var(--primary); margin-bottom: 10px; font-size: 14px; }
-        .child-btn-group { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; }
-        .btn-child-toggle { background: white; border: 2px solid #CBD5E1; padding: 8px 14px; border-radius: 6px; font-weight: bold; font-size: 13px; cursor: pointer; color: #475569; }
-        .btn-child-toggle.active { background: var(--primary); color: white; border-color: var(--primary); }
-        .btn-child-toggle.add-btn { background: #10B981; color: white; border-color: #10B981; }
 
-        .child-card-block { background: #FAFAFA; border: 2px solid #E2E8F0; border-radius: 10px; padding: 18px; margin-bottom: 20px; position: relative; }
-        .child-card-header { background: #1E3A8A; color: white; margin: -18px -18px 15px -18px; padding: 10px 18px; border-radius: 8px 8px 0 0; font-weight: bold; font-size: 14px; display: flex; justify-content: space-between; align-items: center; }
+        .child-card-block { background: #FAFAFA; border: 2px solid #E2E8F0; border-radius: 10px; padding: 18px; margin-bottom: 20px; position: relative; transition: all 0.2s; }
+        .child-card-block.saved-card { border-color: #10B981; background: #F0FDF4; }
+        .child-card-header { background: #1E3A8A; color: white; margin: -18px -18px 15px -18px; padding: 10px 18px; border-radius: 8px 8px 0 0; font-weight: bold; font-size: 14px; display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+        .child-card-block.saved-card .child-card-header { background: #047857; }
+
+        .btn-save-child { background: #059669; color: white; border: none; padding: 11px 16px; border-radius: 7px; font-weight: bold; font-size: 14px; cursor: pointer; width: 100%; margin-top: 15px; }
+        .btn-save-child:hover { background: #047857; }
+
+        .saved-summary-box { display: none; font-size: 13.5px; line-height: 1.6; color: #064E3B; }
+        .saved-summary-box strong { color: #065F46; }
+
+        .add-next-child-box { background: #F1F5F9; border: 2px dashed #94A3B8; border-radius: 10px; padding: 15px; text-align: center; margin-bottom: 20px; display: none; }
+        .btn-add-next { background: #1E3A8A; color: white; border: none; padding: 10px 18px; border-radius: 7px; font-weight: bold; font-size: 14px; cursor: pointer; }
+        .btn-add-next:hover { background: #1E40AF; }
 
         .ic-search-box { display: flex; gap: 8px; }
         .btn-search { background: var(--secondary); color: white; border: none; padding: 0 15px; border-radius: 6px; font-weight: bold; cursor: pointer; white-space: nowrap; }
@@ -157,19 +162,23 @@
             </div>
         </div>
 
-        <!-- SEKSYEN PILIHAN BILANGAN ANAK -->
+        <!-- 2. MAKLUMAT PELAJAR, SUBJEK & DOKUMEN (SIMPAN SATU PERSATU) -->
         <div class="section-title">2. Maklumat Pelajar, Subjek & Dokumen</div>
-        <div class="child-selector-box">
-            <div class="child-selector-title">👨‍👩‍👧‍👦 Berapa ramai anak yang ingin didaftarkan?</div>
-            <div class="child-btn-group">
-                <button type="button" class="btn-child-toggle active" id="btnChildCount1" onclick="setChildCount(1)">Anak Pertama (1)</button>
-                <button type="button" class="btn-child-toggle add-btn" id="btnChildCount2" onclick="setChildCount(2)">+ Anak Kedua (2)</button>
-                <button type="button" class="btn-child-toggle add-btn" id="btnChildCount3" onclick="setChildCount(3)" style="display:none;">+ Anak Ketiga (3)</button>
-                <button type="button" class="btn-child-toggle add-btn" id="btnChildCount4" onclick="setChildCount(4)" style="display:none;">+ Anak Keempat (4)</button>
-            </div>
-        </div>
+        <p style="font-size: 13px; color: #4B5563; margin: 0 0 15px 0;">
+            Sila lengkapkan maklumat <strong>Anak Pertama</strong> dan tekan butang <strong>Simpan</strong>. Jika ingin mendaftarkan lebih daripada seorang anak, butang tambah anak seterusnya akan muncul selepas disimpan.
+        </p>
 
         <div id="childrenContainer"></div>
+
+        <!-- KOTAK TAMBAH ANAK SETERUSNYA (MUNCUL SELEPAS ANAK SEMASA DISIMPAN) -->
+        <div id="addNextChildBox" class="add-next-child-box">
+            <div style="font-size: 13.5px; font-weight: bold; color: #1E3A8A; margin-bottom: 8px;" id="addNextChildPrompt">
+                Ingin mendaftarkan anak seterusnya?
+            </div>
+            <button type="button" class="btn-add-next" id="btnAddNextChild" onclick="addNextChild()">
+                + Tambah Maklumat Anak Kedua
+            </button>
+        </div>
 
         <div class="fee-card">
             <h4 style="margin: 0 0 10px 0; color: #B45309; text-align: center;">📜 Rincian Yuran Pendaftaran PTTD</h4>
@@ -178,7 +187,7 @@
             </div>
         </div>
 
-        <!-- TERMA & SYARAT RASMI PTTD (10 FASA LENGKAP) -->
+        <!-- 3. TERMA & SYARAT RASMI PTTD (10 FASA LENGKAP) -->
         <div class="section-title">3. Terma & Syarat PTTD</div>
         <div class="tnc-container">
             <h5>1. Pendaftaran</h5>
@@ -295,9 +304,17 @@
 
 <script>
 var scriptURL = 'https://script.google.com/macros/s/AKfycbyEte8xaAluH_sX3tAxcKi2umpyrQNhvJ-tb6HHgs6pnwr3nmPi-Z9v8mZgt5IKkFo/exec';
-var activeChildCount = 1;
-var verifiedOldStudent = {};     // true = IC dijumpai dalam database (RM 0)
-var unverifiedOldClaim = {};     // true = pengguna pilih Pelajar Lama tapi IC tak ditemui (RM 25, semakan manual admin)
+var activeChildCount = 0;
+var MAX_CHILDREN = 5;
+var ordinalWords = ["Pertama", "Kedua", "Ketiga", "Keempat", "Kelima"];
+
+var verifiedOldStudent = {};
+var unverifiedOldClaim = {};
+var childSavedState = {};
+
+function getOrdinal(index) {
+    return ordinalWords[index - 1] || ("Ke-" + index);
+}
 
 function enforceDigitsOnly(inputEl) {
     inputEl.value = inputEl.value.replace(/[^0-9]/g, '');
@@ -322,7 +339,7 @@ var subjectsDataRegular = {
     "Tahun 4": ["Bahasa Melayu", "Bahasa Inggeris", "Matematik", "Sains", "Sejarah"],
     "Tahun 5": ["Bahasa Melayu", "Bahasa Inggeris", "Matematik", "Sains", "Sejarah"],
     "Tahun 6": ["Bahasa Melayu", "Bahasa Inggeris", "Matematik", "Sains", "Sejarah"],
-    "Form 1": ["Bahasa Melayu", "Bahasa Inggeris", "Matematik", "Sains", "Sejarah"],
+    "Form 1": ["Bahasa Melayu", "Bahasa Inggeris", "Matematik", "Sains"],
     "Form 2": ["Bahasa Melayu", "Bahasa Inggeris", "Matematik", "Sains", "Sejarah", "Geografi"],
     "Form 3": ["Bahasa Melayu", "Bahasa Inggeris", "Matematik", "Sains", "Sejarah", "Geografi"],
     "Form 4": ["Bahasa Melayu", "Bahasa Inggeris", "Matematik", "Sains", "Sejarah", "Matematik Tambahan", "Fizik", "Kimia", "Biologi", "Perniagaan", "Prinsip Akaun"],
@@ -335,31 +352,43 @@ var subjectsDataFull = {
     "Tahun 4": ["Bahasa Melayu", "Bahasa Inggeris", "Matematik", "Sains", "Sejarah"],
     "Tahun 5": ["Bahasa Melayu", "Bahasa Inggeris", "Matematik", "Sains", "Sejarah"],
     "Tahun 6": ["Bahasa Melayu", "Bahasa Inggeris", "Matematik", "Sains", "Sejarah"],
-    "Form 1": ["Bahasa Melayu", "Bahasa Inggeris", "Matematik", "Sains", "Sejarah"],
+    "Form 1": ["Bahasa Melayu", "Bahasa Inggeris", "Matematik", "Sains"],
     "Form 2": ["Bahasa Melayu", "Bahasa Inggeris", "Matematik", "Sains", "Sejarah", "Geografi"],
     "Form 3": ["Bahasa Melayu", "Bahasa Inggeris", "Matematik", "Sains", "Sejarah", "Geografi"],
     "Form 4": ["Bahasa Melayu", "Bahasa Inggeris", "Matematik", "Sains", "Sejarah", "Matematik Tambahan", "Fizik", "Kimia", "Biologi", "Perniagaan", "Prinsip Akaun"],
     "Form 5": ["Bahasa Melayu", "Bahasa Inggeris", "Matematik", "Sains", "Sejarah", "Matematik Tambahan", "Fizik", "Kimia", "Biologi", "Perniagaan", "Prinsip Akaun"]
 };
 
-function renderChildBlocks() {
+// TAMBAH KAD ANAK BAHARU TANPA MEMADAM ANAK SEDIA ADA
+function addNextChild() {
+    if (activeChildCount >= MAX_CHILDREN) return;
+    activeChildCount++;
+    var i = activeChildCount;
+    var ord = getOrdinal(i);
+
+    verifiedOldStudent[i] = false;
+    unverifiedOldClaim[i] = false;
+    childSavedState[i] = false;
+
     var container = document.getElementById('childrenContainer');
-    container.innerHTML = '';
+    var card = document.createElement('div');
+    card.className = 'child-card-block';
+    card.id = 'childCard_' + i;
 
-    for (var i = 1; i <= activeChildCount; i++) {
-        verifiedOldStudent[i] = false;
-        unverifiedOldClaim[i] = false;
-
-        var card = document.createElement('div');
-        card.className = 'child-card-block';
-        card.id = 'childCard_' + i;
-        
-        card.innerHTML = `
-            <div class="child-card-header">
-                <span>👧👦 MAKLUMAT & DOKUMEN ANAK KE-${i}</span>
-                ${i > 1 ? `<button type="button" onclick="setChildCount(${i-1})" style="background:#EF4444;color:white;border:none;padding:2px 8px;border-radius:4px;cursor:pointer;font-size:12px;">Padam</button>` : ''}
+    card.innerHTML = `
+        <div class="child-card-header">
+            <span id="cardHeaderTitle_${i}">👧👦 MAKLUMAT & DOKUMEN ANAK ${ord.toUpperCase()}</span>
+            <div style="display:flex; gap:6px;">
+                <button type="button" id="btnEditChild_${i}" onclick="editChildCard(${i})" style="display:none; background:#F59E0B; color:white; border:none; padding:4px 10px; border-radius:4px; cursor:pointer; font-size:12px; font-weight:bold;">✏️ Edit</button>
+                ${i > 1 ? `<button type="button" id="btnRemoveChild_${i}" onclick="removeLastChild(${i})" style="background:#EF4444; color:white; border:none; padding:4px 10px; border-radius:4px; cursor:pointer; font-size:12px; font-weight:bold;">Padam</button>` : ''}
             </div>
+        </div>
 
+        <!-- PAPARAN RINGKASAN BILA SUDAH DISIMPAN -->
+        <div id="savedSummary_${i}" class="saved-summary-box"></div>
+
+        <!-- BORANG INPUT ANAK -->
+        <div id="childFormBody_${i}">
             <div class="student-type">
                 <label class="radio-card active" id="lblBaru_${i}">
                     <input type="radio" name="studentStatus_${i}" id="radioBaru_${i}" value="BARU" checked onclick="toggleChildStatus(${i}, 'BARU')"> Pelajar Baharu
@@ -371,7 +400,7 @@ function renderChildBlocks() {
 
             <div class="grid">
                 <div class="form-group full">
-                    <label>Nama Penuh Pelajar (Anak Ke-${i}) *</label>
+                    <label>Nama Penuh Pelajar (Anak ${ord}) *</label>
                     <input type="text" id="studentName_${i}" placeholder="Contoh: Muhammad Amir bin Ahmad" oninput="calculateTotalFees()" required>
                 </div>
 
@@ -455,7 +484,7 @@ function renderChildBlocks() {
 
             <div class="form-group full" style="margin-top: 10px;">
                 <div class="subject-box">
-                    <label style="margin-bottom: 8px; display: block;">Senarai Subjek Anak Ke-${i} (Tanda /):</label>
+                    <label style="margin-bottom: 8px; display: block;">Senarai Subjek Anak ${ord} (Tanda /):</label>
                     <div id="subjectListContainer_${i}" class="subject-grid">
                         <small style="color:#9CA3AF;">Sila pilih Tahun/Tingkatan terlebih dahulu.</small>
                     </div>
@@ -464,34 +493,137 @@ function renderChildBlocks() {
 
             <div class="file-upload-box grid">
                 <div class="form-group">
-                    <label>1. Salinan IC Pelajar (Anak Ke-${i}) - Pilihan</label>
+                    <label>1. Salinan IC Pelajar (Anak ${ord}) - Pilihan</label>
                     <input type="file" id="fileIC_${i}" accept="image/*,.pdf">
                 </div>
                 <div class="form-group">
-                    <label>2. Salinan Keputusan Akhir Sekolah (Anak Ke-${i}) - Pilihan</label>
+                    <label>2. Salinan Keputusan Akhir Sekolah (Anak ${ord}) - Pilihan</label>
                     <input type="file" id="fileResult_${i}" accept="image/*,.pdf">
                 </div>
                 <div class="upload-notice">
-                    📌 <strong>Nota:</strong> Sekiranya menghadapi sebarang ralat muat naik, salinan dokumen Anak Ke-${i} boleh terus dihantar ke <strong>WhatsApp Pejabat PTTD</strong>.
+                    📌 <strong>Nota:</strong> Sekiranya menghadapi sebarang ralat muat naik, salinan dokumen Anak ${ord} boleh terus dihantar ke <strong>WhatsApp Pejabat PTTD</strong>.
                 </div>
             </div>
-        `;
-        container.appendChild(card);
+
+            <button type="button" class="btn-save-child" onclick="saveChildCard(${i})">
+                💾 Simpan Maklumat Anak ${ord}
+            </button>
+        </div>
+    `;
+
+    container.appendChild(card);
+    updateAddNextBoxVisibility();
+    calculateTotalFees();
+
+    if (i > 1) {
+        card.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+}
+
+// VALIDASI & SIMPAN KAD ANAK SEMASA
+function saveChildCard(index) {
+    var ord = getOrdinal(index);
+    var sName = document.getElementById('studentName_' + index).value.trim();
+    var sIC = document.getElementById('icNumber_' + index).value.trim();
+    var sDate = document.getElementById('startDate_' + index).value;
+    var sGrade = document.getElementById('grade2027_' + index).value;
+    var sSchool = document.getElementById('schoolName_' + index).value.trim();
+    var checkedSubjs = Array.from(document.querySelectorAll('.subj-item-' + index + ':checked')).map(cb => cb.value);
+
+    if (!sName) { alert('Sila masukkan Nama Penuh Pelajar untuk Anak ' + ord + '.'); document.getElementById('studentName_' + index).focus(); return; }
+    if (!sIC || sIC.length < 6) { alert('Sila masukkan No. MyKad / Kad Pengenalan yang sah untuk Anak ' + ord + '.'); document.getElementById('icNumber_' + index).focus(); return; }
+    if (!sDate) { alert('Sila pilih Tarikh Mula Kelas untuk Anak ' + ord + '.'); document.getElementById('startDate_' + index).focus(); return; }
+    if (!sGrade) { alert('Sila pilih Tahun / Tingkatan untuk Anak ' + ord + '.'); document.getElementById('grade2027_' + index).focus(); return; }
+    if (!sSchool) { alert('Sila masukkan Nama Sekolah untuk Anak ' + ord + '.'); document.getElementById('schoolName_' + index).focus(); return; }
+    if (checkedSubjs.length === 0) { alert('Sila pilih sekurang-kurangnya SATU subjek untuk Anak ' + ord + '.'); return; }
+
+    // Semakan khas bagi T4/T5 Pakej A/B + Tambahan Subjek
+    var format = document.getElementById('classFormat_' + index).value;
+    var pkgEl = document.getElementById('packageSelect_' + index);
+    var pkgVal = pkgEl ? pkgEl.value : '';
+    if ((sGrade === "Form 4" || sGrade === "Form 5") && format === "Regular") {
+        if (pkgVal === "PakejA_Plus" && checkedSubjs.length < 6) {
+            alert('Untuk pilihan "Pakej A + Tambahan Subjek", sila tanda sekurang-kurangnya 1 subjek tambahan (jumlah sekurang-kurangnya 6 subjek).');
+            return;
+        }
+        if (pkgVal === "PakejB_Plus" && checkedSubjs.length < 6) {
+            alert('Untuk pilihan "Pakej B + Tambahan Subjek", sila tanda sekurang-kurangnya 1 subjek tambahan (jumlah sekurang-kurangnya 6 subjek).');
+            return;
+        }
     }
 
+    childSavedState[index] = true;
+
+    var branch = document.getElementById('branchSelect_' + index).value;
+    var statusLabel = verifiedOldStudent[index] ? "Pelajar Lama (Disahkan)" : (unverifiedOldClaim[index] ? "Pelajar Lama (Semakan Admin)" : "Pelajar Baharu");
+
+    var summaryBox = document.getElementById('savedSummary_' + index);
+    summaryBox.innerHTML = `
+        <div>✅ <strong>Maklumat Anak ${ord} Telah Disimpan:</strong></div>
+        <div style="margin-top:4px;">
+            • <strong>Nama:</strong> ${sName.toUpperCase()} (${statusLabel})<br>
+            • <strong>No. IC:</strong> ${sIC} | <strong>Tingkatan/Tahun:</strong> ${sGrade} (${branch})<br>
+            • <strong>Subjek (${checkedSubjs.length}):</strong> ${checkedSubjs.join(', ')}
+        </div>
+    `;
+    summaryBox.style.display = 'block';
+    document.getElementById('childFormBody_' + index).style.display = 'none';
+    document.getElementById('childCard_' + index).classList.add('saved-card');
+    document.getElementById('cardHeaderTitle_' + index).innerText = '✅ ANAK ' + ord.toUpperCase() + ': ' + sName.toUpperCase();
+    document.getElementById('btnEditChild_' + index).style.display = 'inline-block';
+
+    updateAddNextBoxVisibility();
     calculateTotalFees();
 }
 
-function setChildCount(count) {
-    activeChildCount = count;
-    for (var i = 1; i <= 4; i++) {
-        var btn = document.getElementById('btnChildCount' + i);
-        if (btn) {
-            btn.classList.toggle('active', i === count);
-            if (i <= count + 1 && i <= 4) btn.style.display = 'inline-block';
+// BUKA SEMULA KAD ANAK UNTUK DIEDIT
+function editChildCard(index) {
+    var ord = getOrdinal(index);
+    childSavedState[index] = false;
+
+    document.getElementById('savedSummary_' + index).style.display = 'none';
+    document.getElementById('childFormBody_' + index).style.display = 'block';
+    document.getElementById('childCard_' + index).classList.remove('saved-card');
+    document.getElementById('cardHeaderTitle_' + index).innerText = '👧👦 MAKLUMAT & DOKUMEN ANAK ' + ord.toUpperCase();
+    document.getElementById('btnEditChild_' + index).style.display = 'none';
+
+    updateAddNextBoxVisibility();
+}
+
+// PADAM KAD ANAK TERAKHIR (JIKA TERSALAH TAMBAH)
+function removeLastChild(index) {
+    if (index !== activeChildCount || index <= 1) return;
+    var card = document.getElementById('childCard_' + index);
+    if (card) card.remove();
+
+    delete verifiedOldStudent[index];
+    delete unverifiedOldClaim[index];
+    delete childSavedState[index];
+    activeChildCount--;
+
+    updateAddNextBoxVisibility();
+    calculateTotalFees();
+}
+
+// KAWAL KEMUNCULAN BUTANG "+ TAMBAH MAKLUMAT ANAK SETERUSNYA"
+function updateAddNextBoxVisibility() {
+    var addBox = document.getElementById('addNextChildBox');
+    var allCurrentSaved = true;
+    for (var i = 1; i <= activeChildCount; i++) {
+        if (!childSavedState[i]) {
+            allCurrentSaved = false;
+            break;
         }
     }
-    renderChildBlocks();
+
+    if (allCurrentSaved && activeChildCount < MAX_CHILDREN) {
+        var nextOrd = getOrdinal(activeChildCount + 1);
+        document.getElementById('addNextChildPrompt').innerText = 'Maklumat Anak ' + getOrdinal(activeChildCount) + ' telah disimpan. Ingin mendaftarkan Anak ' + nextOrd + '?';
+        document.getElementById('btnAddNextChild').innerText = '+ Tambah Maklumat Anak ' + nextOrd;
+        addBox.style.display = 'block';
+    } else {
+        addBox.style.display = 'none';
+    }
 }
 
 function toggleChildStatus(index, type) {
@@ -535,7 +667,6 @@ function normalizeDisplayPhone(raw) {
     return digits;
 }
 
-// SEMAK PELAJAR LAMA MELALUI NO. IC SAHAJA
 function checkICForChild(index) {
     var ic = document.getElementById('icNumber_' + index).value.trim();
     if (!ic) { alert('Sila masukkan No. IC.'); return; }
@@ -617,8 +748,10 @@ function loadSubjectsForChild(index) {
     if (grade && format === "Regular") {
         pkgSec.style.display = "block";
         if (grade === "Form 4" || grade === "Form 5") {
-            pkgSelect.innerHTML = '<option value="PakejA">Pakej A (5 Subjek Teras)</option>' +
-                                 '<option value="PakejB">Pakej B (5 Subjek Sains Tulen)</option>' +
+            pkgSelect.innerHTML = '<option value="PakejA">Pakej A (5 Subjek Teras - RM190)</option>' +
+                                 '<option value="PakejB">Pakej B (5 Subjek Sains Tulen - RM220)</option>' +
+                                 '<option value="PakejA_Plus">Pakej A + Tambahan Subjek</option>' +
+                                 '<option value="PakejB_Plus">Pakej B + Tambahan Subjek</option>' +
                                  '<option value="Custom">Pilihan Subjek (Custom)</option>';
         } else {
             var allSubCount = list.length;
@@ -652,66 +785,137 @@ function handleChildPackageChange(index) {
     
     checkboxes.forEach(function(cb) {
         if (grade === "Form 4" || grade === "Form 5") {
-            if (pkg === "PakejA") { cb.checked = pakejA.includes(cb.value); cb.disabled = true; }
-            else if (pkg === "PakejB") { cb.checked = pakejB.includes(cb.value); cb.disabled = true; }
-            else { cb.disabled = false; }
+            if (pkg === "PakejA") {
+                cb.checked = pakejA.includes(cb.value);
+                cb.disabled = true;
+            } else if (pkg === "PakejB") {
+                cb.checked = pakejB.includes(cb.value);
+                cb.disabled = true;
+            } else if (pkg === "PakejA_Plus") {
+                if (pakejA.includes(cb.value)) {
+                    cb.checked = true;
+                    cb.disabled = true;
+                } else {
+                    cb.checked = false;
+                    cb.disabled = false;
+                }
+            } else if (pkg === "PakejB_Plus") {
+                if (pakejB.includes(cb.value)) {
+                    cb.checked = true;
+                    cb.disabled = true;
+                } else {
+                    cb.checked = false;
+                    cb.disabled = false;
+                }
+            } else {
+                cb.disabled = false;
+            }
         } else {
-            if (pkg === "PakejAll") { cb.checked = true; cb.disabled = true; }
-            else { cb.disabled = false; }
+            if (pkg === "PakejAll") {
+                cb.checked = true;
+                cb.disabled = true;
+            } else {
+                cb.disabled = false;
+            }
         }
     });
     calculateTotalFees();
 }
 
+// ==========================================
+// PENGIRAAN YURAN BULANAN MENGIKUT SYARAT TERKINI
+// ==========================================
+function computeMonthlyFee(grade, format, pkgVal, selectedSubjectNames) {
+    var count = selectedSubjectNames.length;
+    if (count === 0) return 0;
+
+    if (format === "SmallGroup") {
+        return count * 140;
+    }
+    if (format === "Personal") {
+        return (grade === "Form 4" || grade === "Form 5") ? (count * 240) : (count * 200);
+    }
+
+    // KELAS BIASA (REGULAR)
+    if (grade === "Membaca") {
+        return (count === 2 || pkgVal === "PakejAll") ? 180 : 100;
+    }
+
+    if (grade === "Tahun 3") {
+        // 2 subjek sahaja: 1 subjek = RM60, 2 subjek (Pakej/Custom) = RM90
+        return (count >= 2) ? 90 : 60;
+    }
+
+    if (grade === "Tahun 4" || grade === "Tahun 5" || grade === "Tahun 6") {
+        // 1 subjek = RM60; 2-3 subjek = RM45/subjek; 4 atau 5 subjek (Pakej/Custom) = RM180
+        if (count === 1) return 60;
+        if (count >= 4) return 180;
+        return count * 45;
+    }
+
+    if (grade === "Form 1") {
+        // 4 subjek sahaja (BM, BI, Math, Sains): 1 = RM60; 2-3 = RM45/subjek; 4 (Pakej/Custom) = RM160
+        if (count === 1) return 60;
+        if (count >= 4) return 160;
+        return count * 45;
+    }
+
+    if (grade === "Form 2" || grade === "Form 3") {
+        // 6 subjek: 1 = RM60; 2-4 = RM45/subjek; 5 atau 6 subjek (Pakej/Custom) = maksimum RM200
+        if (count === 1) return 60;
+        if (count >= 5) return 200;
+        return count * 45;
+    }
+
+    if (grade === "Form 4" || grade === "Form 5") {
+        if (count === 1) return 60;
+        if (count < 5) return count * 45;
+
+        // 5 subjek atau lebih (Pakej A / Pakej B / Pakej A+ / Pakej B+ / Custom >= 5)
+        var hasAddMath = selectedSubjectNames.includes("Matematik Tambahan");
+        var base5Fee = hasAddMath ? 220 : 190;
+        var extraSubjects = count - 5;
+        return base5Fee + (extraSubjects * 45);
+    }
+
+    return (count === 1) ? 60 : count * 45;
+}
+
 function calculateTotalFees() {
     var grandTotalInitial = 0;
     var summaryText = "";
-    var ordinalNames = ["Pertama", "Kedua", "Ketiga", "Keempat"];
 
     for (var i = 1; i <= activeChildCount; i++) {
+        var ord = getOrdinal(i);
         var nameInput = document.getElementById('studentName_' + i);
-        var studentName = nameInput ? (nameInput.value ? nameInput.value.toUpperCase() : "ANAK " + ordinalNames[i-1].toUpperCase()) : ("ANAK " + ordinalNames[i-1].toUpperCase());
+        var studentName = nameInput ? (nameInput.value.trim() ? nameInput.value.trim().toUpperCase() : "ANAK " + ord.toUpperCase()) : ("ANAK " + ord.toUpperCase());
         var gradeSelect = document.getElementById('grade2027_' + i);
         var grade = gradeSelect ? gradeSelect.value : "";
-        var checkedSubjects = document.querySelectorAll('.subj-item-' + i + ':checked');
+        var checkedCheckboxes = Array.from(document.querySelectorAll('.subj-item-' + i + ':checked'));
+        var selectedNames = checkedCheckboxes.map(cb => cb.value);
         
         var isVerifiedLama = verifiedOldStudent[i] === true;
         var isUnverifiedClaim = unverifiedOldClaim[i] === true;
 
-        if (!grade || checkedSubjects.length === 0) continue;
+        if (!grade || selectedNames.length === 0) continue;
 
         var regFee = isVerifiedLama ? 0 : 25;
-        var monthlyFee = 0;
-        var materialFeeTotal = 0;
-        var count = checkedSubjects.length;
-
         var formatSelect = document.getElementById('classFormat_' + i);
         var format = formatSelect ? formatSelect.value : "Regular";
-        
-        if (format === "SmallGroup") monthlyFee = count * 140;
-        else if (format === "Personal") monthlyFee = (grade === "Form 4" || grade === "Form 5") ? count * 240 : count * 200;
-        else {
-            var pkgSelect = document.getElementById('packageSelect_' + i);
-            var pkgVal = pkgSelect ? pkgSelect.value : "Custom";
-            if (grade === "Form 4" || grade === "Form 5") {
-                if (pkgVal === "PakejA") monthlyFee = 190;
-                else if (pkgVal === "PakejB") monthlyFee = 220;
-                else monthlyFee = (count === 1) ? 60 : count * 45;
-            } else if (grade === "Membaca") {
-                monthlyFee = (count === 2 || pkgVal === "PakejAll") ? 180 : 100;
-            } else {
-                if (pkgVal === "PakejAll") monthlyFee = (grade === "Form 2" || grade === "Form 3") ? 200 : 180;
-                else monthlyFee = (count === 1) ? 60 : count * 45;
-            }
-        }
+        var pkgSelect = document.getElementById('packageSelect_' + i);
+        var pkgVal = pkgSelect ? pkgSelect.value : "Custom";
 
-        checkedSubjects.forEach(function(cb) {
-            var subjek = cb.value;
+        var monthlyFee = computeMonthlyFee(grade, format, pkgVal, selectedNames);
+        var materialFeeTotal = 0;
+
+        selectedNames.forEach(function(subjek) {
             if (grade === "Form 4" || grade === "Form 5") {
                 if (subjek === "Matematik" || subjek === "Matematik Tambahan" || subjek === "Fizik") materialFeeTotal += 50;
                 else if (subjek === "Kimia" || subjek === "Biologi") materialFeeTotal += 40;
                 else materialFeeTotal += 35;
-            } else materialFeeTotal += 35;
+            } else {
+                materialFeeTotal += 35;
+            }
         });
 
         var childTotal = regFee + materialFeeTotal + monthlyFee;
@@ -721,15 +925,15 @@ function calculateTotalFees() {
         if (isVerifiedLama) regNote = " (Pelajar Lama Disahkan)";
         else if (isUnverifiedClaim) regNote = " (Tertakluk Semakan Admin)";
 
-        summaryText += "👤 " + studentName + " (" + grade + ")\n";
+        summaryText += "👤 " + studentName + " (" + grade + " - " + selectedNames.length + " Subjek)\n";
         summaryText += "   • Yuran Pendaftaran = RM " + regFee + regNote + "\n";
         summaryText += "   • Yuran Bahan = RM " + materialFeeTotal + "\n";
         summaryText += "   • Yuran Bulan Pertama = RM " + monthlyFee + "\n";
-        summaryText += "   Jumlah Yuran Permulaan Anak " + ordinalNames[i-1] + " = RM " + childTotal + "\n\n";
+        summaryText += "   Jumlah Yuran Permulaan Anak " + ord + " = RM " + childTotal + "\n\n";
     }
 
     if (summaryText === "") {
-        document.getElementById('feeBreakdownDisplay').innerText = "Sila pilih Tingkatan dan Subjek untuk sekurang-kurangnya seorang anak.";
+        document.getElementById('feeBreakdownDisplay').innerText = "Sila pilih Tahun/Tingkatan dan Subjek untuk sekurang-kurangnya seorang anak.";
     } else {
         var finalOutput = summaryText;
         finalOutput += "----------------------------------------\n";
@@ -759,6 +963,15 @@ document.getElementById('pttdForm').addEventListener('submit', function(e) {
     if (mVal !== '-' && !mValid) {
         alert('Format No. Telefon Ibu tidak sah. Sila masukkan nombor bermula dengan 01 (tanpa +60) atau letakkan tanda - jika tiada.');
         return;
+    }
+
+    // Pastikan setiap kad anak yang dibuka telah dilengkapkan & disimpan
+    for (var k = 1; k <= activeChildCount; k++) {
+        if (!childSavedState[k]) {
+            alert('Sila tekan butang "💾 Simpan Maklumat Anak ' + getOrdinal(k) + '" terlebih dahulu sebelum menghantar borang.');
+            document.getElementById('childCard_' + k).scrollIntoView({ behavior: 'smooth', block: 'start' });
+            return;
+        }
     }
 
     var btnSubmit = document.querySelector('.btn-submit');
@@ -849,7 +1062,8 @@ document.getElementById('pttdForm').addEventListener('submit', function(e) {
     });
 });
 
-renderChildBlocks();
+// Mulakan dengan Anak Pertama
+addNextChild();
 </script>
 
 </body>
