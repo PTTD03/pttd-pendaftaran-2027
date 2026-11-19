@@ -1093,7 +1093,6 @@ function calculateTotalFees() {
         selectedNames.forEach(function(subjek) {
             if (grade === "Form 4" || grade === "Form 5") {
                 if (subjek === "Matematik" || subjek === "Matematik Tambahan" || subjek === "Fizik") materialFeeTotal += 50;
-                else if (subjek === "Kimia" || subjek === "Biologi") materialFeeTotal += 40;
                 else materialFeeTotal += 35;
             } else {
                 materialFeeTotal += 35;
