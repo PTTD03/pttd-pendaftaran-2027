@@ -75,6 +75,8 @@
         .verified-badge { background: #D1FAE5; color: #065F46; border: 1px solid #10B981; padding: 6px 10px; border-radius: 6px; font-weight: bold; display: none; margin-top: 6px; font-size: 12px; }
         .unverified-notice { background: #FEF2F2; color: #991B1B; border: 1px solid #FCA5A5; padding: 8px 10px; border-radius: 6px; display: none; margin-top: 6px; font-size: 12px; line-height: 1.5; }
         
+        .health-special-box { background: #FFFBEB; border: 1px solid #FDE68A; border-radius: 8px; padding: 12px; margin-top: 12px; }
+        
         .subject-box { background: #F9FAFB; border: 1px solid #E5E7EB; border-radius: 8px; padding: 12px; margin-top: 5px; }
         .subject-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
         
@@ -114,6 +116,8 @@
         .tnc-container ol, .tnc-container ul { margin: 0; padding-left: 20px; }
         
         .agreement-box, .media-consent-box { background: #F3F4F6; border-radius: 8px; padding: 15px; margin-top: 15px; }
+        .pdpa-box { background: #EFF6FF; border: 1px solid #BFDBFE; border-radius: 8px; padding: 15px; margin-top: 15px; }
+        .pdpa-text { font-size: 12.8px; color: #1E293B; line-height: 1.6; margin-bottom: 10px; background: white; padding: 10px 12px; border-radius: 6px; border: 1px solid #DBEAFE; }
         .checkbox-item { display: flex; align-items: flex-start; gap: 10px; margin-bottom: 10px; font-size: 13px; cursor: pointer; }
         .checkbox-item input { margin-top: 3px; }
 
@@ -133,8 +137,26 @@
 
     <form id="pttdForm">
 
-        <!-- 1. MAKLUMAT IBU BAPA / PENJAGA -->
-        <div class="section-title">1. Maklumat Ibu / Bapa / Penjaga</div>
+        <!-- 1. MAKLUMAT PELAJAR, SUBJEK & DOKUMEN -->
+        <div class="section-title">1. Maklumat Pelajar, Subjek & Dokumen</div>
+        <p style="font-size: 13px; color: #4B5563; margin: 0 0 15px 0;">
+            Sila lengkapkan maklumat <strong>Anak Pertama</strong> dan tekan butang <strong>Simpan</strong>. Jika ingin mendaftarkan lebih daripada seorang anak, butang tambah anak seterusnya akan muncul selepas disimpan.
+        </p>
+
+        <div id="childrenContainer"></div>
+
+        <!-- KOTAK TAMBAH ANAK SETERUSNYA -->
+        <div id="addNextChildBox" class="add-next-child-box">
+            <div style="font-size: 13.5px; font-weight: bold; color: #1E3A8A; margin-bottom: 8px;" id="addNextChildPrompt">
+                Ingin mendaftarkan anak seterusnya?
+            </div>
+            <button type="button" class="btn-add-next" id="btnAddNextChild" onclick="addNextChild()">
+                + Tambah Maklumat Anak Kedua
+            </button>
+        </div>
+
+        <!-- 2. MAKLUMAT IBU BAPA / PENJAGA -->
+        <div class="section-title">2. Maklumat Ibu / Bapa / Penjaga</div>
         <div class="grid">
             <div class="form-group full">
                 <label>Nama Ibu / Bapa / Penjaga *</label>
@@ -160,24 +182,6 @@
                 <label>No. Telefon Rumah (Jika Ada)</label>
                 <input type="tel" id="homePhone" inputmode="numeric" maxlength="10" pattern="^0[0-9]{8,9}$" title="Masukkan nombor telefon bermula dengan 0 tanpa tanda sengkang" oninput="enforceDigitsOnly(this)" placeholder="Contoh: 053123456">
             </div>
-        </div>
-
-        <!-- 2. MAKLUMAT PELAJAR, SUBJEK & DOKUMEN (SIMPAN SATU PERSATU) -->
-        <div class="section-title">2. Maklumat Pelajar, Subjek & Dokumen</div>
-        <p style="font-size: 13px; color: #4B5563; margin: 0 0 15px 0;">
-            Sila lengkapkan maklumat <strong>Anak Pertama</strong> dan tekan butang <strong>Simpan</strong>. Jika ingin mendaftarkan lebih daripada seorang anak, butang tambah anak seterusnya akan muncul selepas disimpan.
-        </p>
-
-        <div id="childrenContainer"></div>
-
-        <!-- KOTAK TAMBAH ANAK SETERUSNYA (MUNCUL SELEPAS ANAK SEMASA DISIMPAN) -->
-        <div id="addNextChildBox" class="add-next-child-box">
-            <div style="font-size: 13.5px; font-weight: bold; color: #1E3A8A; margin-bottom: 8px;" id="addNextChildPrompt">
-                Ingin mendaftarkan anak seterusnya?
-            </div>
-            <button type="button" class="btn-add-next" id="btnAddNextChild" onclick="addNextChild()">
-                + Tambah Maklumat Anak Kedua
-            </button>
         </div>
 
         <div class="fee-card">
@@ -298,6 +302,18 @@
             </label>
         </div>
 
+        <!-- PERAKUAN PERLINDUNGAN DATA PERIBADI (PDPA) -->
+        <div class="pdpa-box">
+            <label style="font-weight: bold; margin-bottom: 8px; display: block; color: var(--primary);">Perakuan Perlindungan Data Peribadi (PDPA) *</label>
+            <div class="pdpa-text">
+                "Saya mengesahkan bahawa semua maklumat yang diberikan adalah benar dan tepat. Saya memberi kebenaran kepada pihak <strong>Pusat Tuisyen Teraju Didik</strong> untuk mengumpul, menyimpan, dan memproses data peribadi saya serta anak/jagaan saya bagi tujuan rekod pendaftaran, pengurusan kelas, pengebilan yuran/resit, keselamatan, dan komunikasi rasmi selaras dengan Akta Perlindungan Data Peribadi 2010 (PDPA)."
+            </div>
+            <label class="checkbox-item" style="margin-bottom: 0;">
+                <input type="checkbox" id="chkPdpa" required>
+                <span><strong>Saya faham dan bersetuju dengan perakuan di atas.</strong></span>
+            </label>
+        </div>
+
         <button type="submit" class="btn-submit">Hantar Pendaftaran PTTD</button>
     </form>
 </div>
@@ -359,7 +375,6 @@ var subjectsDataFull = {
     "Form 5": ["Bahasa Melayu", "Bahasa Inggeris", "Matematik", "Sains", "Sejarah", "Matematik Tambahan", "Fizik", "Kimia", "Biologi", "Perniagaan", "Prinsip Akaun"]
 };
 
-// TAMBAH KAD ANAK BAHARU TANPA MEMADAM ANAK SEDIA ADA
 function addNextChild() {
     if (activeChildCount >= MAX_CHILDREN) return;
     activeChildCount++;
@@ -405,9 +420,9 @@ function addNextChild() {
                 </div>
 
                 <div class="form-group">
-                    <label>No. MyKad / Kad Pengenalan *</label>
+                    <label>No. MyKad / MyKid Pelajar *</label>
                     <div class="ic-search-box">
-                        <input type="text" id="icNumber_${i}" inputmode="numeric" maxlength="12" placeholder="Contoh: 120514085431" oninput="enforceDigitsOnly(this); calculateAgeForChild(${i});" style="width: 100%;" required>
+                        <input type="text" id="icNumber_${i}" inputmode="numeric" maxlength="12" placeholder="Contoh: 120514085431" oninput="enforceDigitsOnly(this); onICInputForChild(${i});" style="width: 100%;" required>
                         <button type="button" id="btnCheckIC_${i}" class="btn-search" style="display:none;" onclick="checkICForChild(${i})">Semak</button>
                     </div>
                     <div id="ageDisplay_${i}" class="age-badge" style="display:none;">Umur Sesi 2027: <span id="ageValue_${i}">-</span></div>
@@ -419,8 +434,48 @@ function addNextChild() {
                 </div>
 
                 <div class="form-group">
+                    <label>Jantina *</label>
+                    <select id="gender_${i}" required>
+                        <option value="">-- Pilih Jantina --</option>
+                        <option value="Lelaki">Lelaki</option>
+                        <option value="Perempuan">Perempuan</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label>Tarikh Lahir *</label>
+                    <input type="date" id="birthDate_${i}" required>
+                </div>
+
+                <div class="form-group">
                     <label>Tarikh Mula Kelas *</label>
                     <input type="date" id="startDate_${i}" required>
+                </div>
+
+                <div class="form-group">
+                    <label>Bangsa *</label>
+                    <select id="race_${i}" onchange="toggleOtherInput(${i}, 'race')" required>
+                        <option value="">-- Pilih Bangsa --</option>
+                        <option value="Melayu">Melayu</option>
+                        <option value="Cina">Cina</option>
+                        <option value="India">India</option>
+                        <option value="Lain-lain">Lain-lain</option>
+                    </select>
+                    <input type="text" id="raceOther_${i}" placeholder="Nyatakan bangsa" style="display:none; margin-top:6px;">
+                </div>
+
+                <div class="form-group">
+                    <label>Agama *</label>
+                    <select id="religion_${i}" onchange="toggleOtherInput(${i}, 'religion')" required>
+                        <option value="">-- Pilih Agama --</option>
+                        <option value="Islam">Islam</option>
+                        <option value="Buddha">Buddha</option>
+                        <option value="Kristian">Kristian</option>
+                        <option value="Hindu">Hindu</option>
+                        <option value="Sikh">Sikh</option>
+                        <option value="Lain-lain">Lain-lain</option>
+                    </select>
+                    <input type="text" id="religionOther_${i}" placeholder="Nyatakan agama" style="display:none; margin-top:6px;">
                 </div>
 
                 <div class="form-group">
@@ -446,11 +501,30 @@ function addNextChild() {
                 </div>
 
                 <div class="form-group">
-                    <label>Jenis Kelas di Sekolah *</label>
+                    <label>Kelas di Sekolah *</label>
+                    <input type="text" id="schoolClassName_${i}" placeholder="Contoh: 4 Cekal / 5 Ibnu Sina" required>
+                </div>
+
+                <div class="form-group">
+                    <label>Bahasa Pembelajaran di Sekolah *</label>
                     <select id="schoolClassType_${i}" required>
                         <option value="Biasa (BM)">Biasa (Aliran BM)</option>
                         <option value="DLP (English)">DLP (English)</option>
                     </select>
+                </div>
+
+                <div class="form-group full" id="schoolStreamGroup_${i}" style="display:none;">
+                    <label>Aliran Kelas di Sekolah (Tingkatan 4 & 5) *</label>
+                    <select id="schoolStream_${i}" onchange="toggleOtherInput(${i}, 'schoolStream')">
+                        <option value="">-- Pilih Aliran Kelas --</option>
+                        <option value="STEM / Sains Tulen (Fizik, Kimia, Biologi, Matematik Tambahan)">STEM / Sains Tulen (Fizik, Kimia, Biologi, Matematik Tambahan)</option>
+                        <option value="STEM / Sains Komputer & Kejuruteraan (Fizik, Kimia, Matematik Tambahan, Sains Komputer / GKT)">STEM / Sains Komputer & Kejuruteraan (Fizik, Kimia, Matematik Tambahan, Sains Komputer / GKT)</option>
+                        <option value="Perakaunan / Perniagaan / Ekonomi (Prinsip Perakaunan, Perniagaan, Ekonomi)">Perakaunan / Perniagaan / Ekonomi (Prinsip Perakaunan, Perniagaan, Ekonomi)</option>
+                        <option value="Sastera / Kemanusiaan / Seni (Sains Teras, Geografi, Seni Visual, Tasawur, dll.)">Sastera / Kemanusiaan / Seni (Sains Teras, Geografi, Seni Visual, Tasawur, dll.)</option>
+                        <option value="Vokasional / Teknikal / Tahfiz (TMUA)">Vokasional / Teknikal / Tahfiz (TMUA)</option>
+                        <option value="Lain-lain">Lain-lain</option>
+                    </select>
+                    <input type="text" id="schoolStreamOther_${i}" placeholder="Nyatakan aliran kelas di sekolah" style="display:none; margin-top:6px;">
                 </div>
 
                 <div class="form-group">
@@ -473,6 +547,34 @@ function addNextChild() {
                         <option value="SmallGroup">Kelas Kumpulan Kecil (Min 2, Max 4 orang)</option>
                         <option value="Personal">Kelas Personal (1-to-1)</option>
                     </select>
+                </div>
+            </div>
+
+            <!-- ALAHAN, KESIHATAN & KEPERLUAN PEMBELAJARAN KHAS -->
+            <div class="health-special-box grid">
+                <div class="form-group">
+                    <label>Alahan & Masalah Kesihatan (Jika Ada)</label>
+                    <select id="healthCategory_${i}" onchange="toggleHealthOrSpecialDetail(${i}, 'health')">
+                        <option value="Tiada">Tiada</option>
+                        <option value="Alahan Makanan">Alahan Makanan</option>
+                        <option value="Alahan Persekitaran / Habuk">Alahan Persekitaran / Habuk</option>
+                        <option value="Asma / Lelah">Asma / Lelah</option>
+                        <option value="Masalah Kesihatan Lain">Ada Masalah Kesihatan Lain</option>
+                    </select>
+                    <input type="text" id="healthDetail_${i}" placeholder="Nyatakan jenis alahan / masalah kesihatan (cth: alah kacang, asma)" style="display:none; margin-top:6px;">
+                </div>
+
+                <div class="form-group">
+                    <label>Keperluan Pembelajaran Khas (Jika Ada)</label>
+                    <select id="specialCategory_${i}" onchange="toggleHealthOrSpecialDetail(${i}, 'special')">
+                        <option value="Tiada">Tiada</option>
+                        <option value="Rabun / Masalah Penglihatan">Rabun / Masalah Penglihatan (Perlu duduk depan)</option>
+                        <option value="Masalah Pendengaran">Masalah Pendengaran</option>
+                        <option value="Disleksia">Disleksia</option>
+                        <option value="ADHD / Masalah Fokus">ADHD / Masalah Fokus</option>
+                        <option value="Keperluan Khas Lain">Lain-lain Keperluan Khas</option>
+                    </select>
+                    <input type="text" id="specialDetail_${i}" placeholder="Nyatakan keperluan khas supaya guru dapat bantu di kelas" style="display:none; margin-top:6px;">
                 </div>
             </div>
 
@@ -520,24 +622,89 @@ function addNextChild() {
     }
 }
 
-// VALIDASI & SIMPAN KAD ANAK SEMASA
+function toggleOtherInput(index, fieldPrefix) {
+    var sel = document.getElementById(fieldPrefix + '_' + index);
+    var otherInp = document.getElementById(fieldPrefix + 'Other_' + index);
+    if (!sel || !otherInp) return;
+
+    if (sel.value === "Lain-lain") {
+        otherInp.style.display = 'block';
+    } else {
+        otherInp.style.display = 'none';
+        otherInp.value = '';
+    }
+}
+
+function toggleHealthOrSpecialDetail(index, prefix) {
+    var sel = document.getElementById(prefix + 'Category_' + index);
+    var detailInp = document.getElementById(prefix + 'Detail_' + index);
+    if (!sel || !detailInp) return;
+
+    if (sel.value !== "Tiada") {
+        detailInp.style.display = 'block';
+    } else {
+        detailInp.style.display = 'none';
+        detailInp.value = '';
+    }
+}
+
+function getHealthOrSpecialValue(index, prefix) {
+    var sel = document.getElementById(prefix + 'Category_' + index);
+    var detailInp = document.getElementById(prefix + 'Detail_' + index);
+    if (!sel || sel.value === "Tiada") return "Tiada";
+    var extra = detailInp ? detailInp.value.trim() : "";
+    return extra ? (sel.value + " (" + extra + ")") : sel.value;
+}
+
+function getFieldValueWithOther(index, fieldPrefix) {
+    var sel = document.getElementById(fieldPrefix + '_' + index);
+    var otherInp = document.getElementById(fieldPrefix + 'Other_' + index);
+    if (!sel) return '';
+    if (sel.value === "Lain-lain") {
+        var manual = otherInp ? otherInp.value.trim() : '';
+        return manual ? ("Lain-lain: " + manual) : "Lain-lain";
+    }
+    return sel.value;
+}
+
 function saveChildCard(index) {
     var ord = getOrdinal(index);
     var sName = document.getElementById('studentName_' + index).value.trim();
     var sIC = document.getElementById('icNumber_' + index).value.trim();
+    var sGender = document.getElementById('gender_' + index).value;
+    var sBirth = document.getElementById('birthDate_' + index).value;
     var sDate = document.getElementById('startDate_' + index).value;
+    var sRaceSel = document.getElementById('race_' + index).value;
+    var sRaceOther = document.getElementById('raceOther_' + index).value.trim();
+    var sRelSel = document.getElementById('religion_' + index).value;
+    var sRelOther = document.getElementById('religionOther_' + index).value.trim();
     var sGrade = document.getElementById('grade2027_' + index).value;
     var sSchool = document.getElementById('schoolName_' + index).value.trim();
+    var sClassName = document.getElementById('schoolClassName_' + index).value.trim();
+    var sStreamSel = document.getElementById('schoolStream_' + index).value;
+    var sStreamOther = document.getElementById('schoolStreamOther_' + index).value.trim();
     var checkedSubjs = Array.from(document.querySelectorAll('.subj-item-' + index + ':checked')).map(cb => cb.value);
 
     if (!sName) { alert('Sila masukkan Nama Penuh Pelajar untuk Anak ' + ord + '.'); document.getElementById('studentName_' + index).focus(); return; }
-    if (!sIC || sIC.length < 6) { alert('Sila masukkan No. MyKad / Kad Pengenalan yang sah untuk Anak ' + ord + '.'); document.getElementById('icNumber_' + index).focus(); return; }
+    if (!sIC || sIC.length < 6) { alert('Sila masukkan No. MyKad / MyKid Pelajar yang sah untuk Anak ' + ord + '.'); document.getElementById('icNumber_' + index).focus(); return; }
+    if (!sGender) { alert('Sila pilih Jantina untuk Anak ' + ord + '.'); document.getElementById('gender_' + index).focus(); return; }
+    if (!sBirth) { alert('Sila pilih Tarikh Lahir untuk Anak ' + ord + '.'); document.getElementById('birthDate_' + index).focus(); return; }
     if (!sDate) { alert('Sila pilih Tarikh Mula Kelas untuk Anak ' + ord + '.'); document.getElementById('startDate_' + index).focus(); return; }
+    if (!sRaceSel) { alert('Sila pilih Bangsa untuk Anak ' + ord + '.'); document.getElementById('race_' + index).focus(); return; }
+    if (sRaceSel === 'Lain-lain' && !sRaceOther) { alert('Sila nyatakan Bangsa pada ruangan disediakan untuk Anak ' + ord + '.'); document.getElementById('raceOther_' + index).focus(); return; }
+    if (!sRelSel) { alert('Sila pilih Agama untuk Anak ' + ord + '.'); document.getElementById('religion_' + index).focus(); return; }
+    if (sRelSel === 'Lain-lain' && !sRelOther) { alert('Sila nyatakan Agama pada ruangan disediakan untuk Anak ' + ord + '.'); document.getElementById('religionOther_' + index).focus(); return; }
     if (!sGrade) { alert('Sila pilih Tahun / Tingkatan untuk Anak ' + ord + '.'); document.getElementById('grade2027_' + index).focus(); return; }
     if (!sSchool) { alert('Sila masukkan Nama Sekolah untuk Anak ' + ord + '.'); document.getElementById('schoolName_' + index).focus(); return; }
+    if (!sClassName) { alert('Sila masukkan Kelas di Sekolah untuk Anak ' + ord + '.'); document.getElementById('schoolClassName_' + index).focus(); return; }
+
+    if (sGrade === "Form 4" || sGrade === "Form 5") {
+        if (!sStreamSel) { alert('Sila pilih Aliran Kelas di Sekolah untuk Anak ' + ord + '.'); document.getElementById('schoolStream_' + index).focus(); return; }
+        if (sStreamSel === 'Lain-lain' && !sStreamOther) { alert('Sila nyatakan Aliran Kelas di Sekolah untuk Anak ' + ord + '.'); document.getElementById('schoolStreamOther_' + index).focus(); return; }
+    }
+
     if (checkedSubjs.length === 0) { alert('Sila pilih sekurang-kurangnya SATU subjek untuk Anak ' + ord + '.'); return; }
 
-    // Semakan khas bagi T4/T5 Pakej A/B + Tambahan Subjek
     var format = document.getElementById('classFormat_' + index).value;
     var pkgEl = document.getElementById('packageSelect_' + index);
     var pkgVal = pkgEl ? pkgEl.value : '';
@@ -556,13 +723,18 @@ function saveChildCard(index) {
 
     var branch = document.getElementById('branchSelect_' + index).value;
     var statusLabel = verifiedOldStudent[index] ? "Pelajar Lama (Disahkan)" : (unverifiedOldClaim[index] ? "Pelajar Lama (Semakan Admin)" : "Pelajar Baharu");
+    var streamInfo = (sGrade === "Form 4" || sGrade === "Form 5") ? (` | <strong>Aliran:</strong> ${getFieldValueWithOther(index, 'schoolStream')}`) : '';
+    var healthText = getHealthOrSpecialValue(index, 'health');
+    var specialText = getHealthOrSpecialValue(index, 'special');
 
     var summaryBox = document.getElementById('savedSummary_' + index);
     summaryBox.innerHTML = `
         <div>✅ <strong>Maklumat Anak ${ord} Telah Disimpan:</strong></div>
         <div style="margin-top:4px;">
-            • <strong>Nama:</strong> ${sName.toUpperCase()} (${statusLabel})<br>
-            • <strong>No. IC:</strong> ${sIC} | <strong>Tingkatan/Tahun:</strong> ${sGrade} (${branch})<br>
+            • <strong>Nama:</strong> ${sName.toUpperCase()} (${sGender} | ${statusLabel})<br>
+            • <strong>No. MyKad/MyKid:</strong> ${sIC} | <strong>Tarikh Lahir:</strong> ${sBirth}<br>
+            • <strong>Sekolah:</strong> ${sSchool} (Kelas: ${sClassName}) | <strong>Tingkatan/Tahun:</strong> ${sGrade} (${branch})${streamInfo}<br>
+            • <strong>Kesihatan/Alahan:</strong> ${healthText} | <strong>Keperluan Khas:</strong> ${specialText}<br>
             • <strong>Subjek (${checkedSubjs.length}):</strong> ${checkedSubjs.join(', ')}
         </div>
     `;
@@ -576,7 +748,6 @@ function saveChildCard(index) {
     calculateTotalFees();
 }
 
-// BUKA SEMULA KAD ANAK UNTUK DIEDIT
 function editChildCard(index) {
     var ord = getOrdinal(index);
     childSavedState[index] = false;
@@ -590,7 +761,6 @@ function editChildCard(index) {
     updateAddNextBoxVisibility();
 }
 
-// PADAM KAD ANAK TERAKHIR (JIKA TERSALAH TAMBAH)
 function removeLastChild(index) {
     if (index !== activeChildCount || index <= 1) return;
     var card = document.getElementById('childCard_' + index);
@@ -605,7 +775,6 @@ function removeLastChild(index) {
     calculateTotalFees();
 }
 
-// KAWAL KEMUNCULAN BUTANG "+ TAMBAH MAKLUMAT ANAK SETERUSNYA"
 function updateAddNextBoxVisibility() {
     var addBox = document.getElementById('addNextChildBox');
     var allCurrentSaved = true;
@@ -642,10 +811,11 @@ function toggleChildStatus(index, type) {
     calculateTotalFees();
 }
 
-function calculateAgeForChild(index) {
+function onICInputForChild(index) {
     var ic = document.getElementById('icNumber_' + index).value.replace(/[^0-9]/g, '');
     var ageDisplay = document.getElementById('ageDisplay_' + index);
     var ageValue = document.getElementById('ageValue_' + index);
+    var birthInput = document.getElementById('birthDate_' + index);
     
     if (ic.length >= 2) {
         var yearTwoDigits = parseInt(ic.substring(0, 2), 10);
@@ -653,6 +823,16 @@ function calculateAgeForChild(index) {
         var age = 2027 - birthYear;
         ageValue.innerText = age + " Tahun";
         ageDisplay.style.display = 'inline-block';
+
+        if (ic.length >= 6 && birthInput && !birthInput.value) {
+            var mm = ic.substring(2, 4);
+            var dd = ic.substring(4, 6);
+            var mInt = parseInt(mm, 10);
+            var dInt = parseInt(dd, 10);
+            if (mInt >= 1 && mInt <= 12 && dInt >= 1 && dInt <= 31) {
+                birthInput.value = birthYear + '-' + mm + '-' + dd;
+            }
+        }
     } else {
         ageDisplay.style.display = 'none';
     }
@@ -669,7 +849,7 @@ function normalizeDisplayPhone(raw) {
 
 function checkICForChild(index) {
     var ic = document.getElementById('icNumber_' + index).value.trim();
-    if (!ic) { alert('Sila masukkan No. IC.'); return; }
+    if (!ic) { alert('Sila masukkan No. MyKad / MyKid.'); return; }
     
     var btn = document.getElementById('btnCheckIC_' + index);
     btn.innerText = 'Menyemak...';
@@ -720,6 +900,7 @@ function checkICForChild(index) {
 function onChildGradeChange(index) {
     var grade = document.getElementById('grade2027_' + index).value;
     var branchSelect = document.getElementById('branchSelect_' + index);
+    var streamGroup = document.getElementById('schoolStreamGroup_' + index);
     
     if (grade === "Membaca") {
         branchSelect.value = "Pasir Puteh";
@@ -730,6 +911,16 @@ function onChildGradeChange(index) {
     } else {
         branchSelect.disabled = false;
     }
+
+    if (grade === "Form 4" || grade === "Form 5") {
+        streamGroup.style.display = "flex";
+    } else {
+        streamGroup.style.display = "none";
+        document.getElementById('schoolStream_' + index).value = "";
+        document.getElementById('schoolStreamOther_' + index).style.display = "none";
+        document.getElementById('schoolStreamOther_' + index).value = "";
+    }
+
     loadSubjectsForChild(index);
 }
 
@@ -822,9 +1013,6 @@ function handleChildPackageChange(index) {
     calculateTotalFees();
 }
 
-// ==========================================
-// PENGIRAAN YURAN BULANAN MENGIKUT SYARAT TERKINI
-// ==========================================
 function computeMonthlyFee(grade, format, pkgVal, selectedSubjectNames) {
     var count = selectedSubjectNames.length;
     if (count === 0) return 0;
@@ -836,32 +1024,27 @@ function computeMonthlyFee(grade, format, pkgVal, selectedSubjectNames) {
         return (grade === "Form 4" || grade === "Form 5") ? (count * 240) : (count * 200);
     }
 
-    // KELAS BIASA (REGULAR)
     if (grade === "Membaca") {
         return (count === 2 || pkgVal === "PakejAll") ? 180 : 100;
     }
 
     if (grade === "Tahun 3") {
-        // 2 subjek sahaja: 1 subjek = RM60, 2 subjek (Pakej/Custom) = RM90
         return (count >= 2) ? 90 : 60;
     }
 
     if (grade === "Tahun 4" || grade === "Tahun 5" || grade === "Tahun 6") {
-        // 1 subjek = RM60; 2-3 subjek = RM45/subjek; 4 atau 5 subjek (Pakej/Custom) = RM180
         if (count === 1) return 60;
         if (count >= 4) return 180;
         return count * 45;
     }
 
     if (grade === "Form 1") {
-        // 4 subjek sahaja (BM, BI, Math, Sains): 1 = RM60; 2-3 = RM45/subjek; 4 (Pakej/Custom) = RM160
         if (count === 1) return 60;
         if (count >= 4) return 160;
         return count * 45;
     }
 
     if (grade === "Form 2" || grade === "Form 3") {
-        // 6 subjek: 1 = RM60; 2-4 = RM45/subjek; 5 atau 6 subjek (Pakej/Custom) = maksimum RM200
         if (count === 1) return 60;
         if (count >= 5) return 200;
         return count * 45;
@@ -871,7 +1054,6 @@ function computeMonthlyFee(grade, format, pkgVal, selectedSubjectNames) {
         if (count === 1) return 60;
         if (count < 5) return count * 45;
 
-        // 5 subjek atau lebih (Pakej A / Pakej B / Pakej A+ / Pakej B+ / Custom >= 5)
         var hasAddMath = selectedSubjectNames.includes("Matematik Tambahan");
         var base5Fee = hasAddMath ? 220 : 190;
         var extraSubjects = count - 5;
@@ -965,13 +1147,18 @@ document.getElementById('pttdForm').addEventListener('submit', function(e) {
         return;
     }
 
-    // Pastikan setiap kad anak yang dibuka telah dilengkapkan & disimpan
     for (var k = 1; k <= activeChildCount; k++) {
         if (!childSavedState[k]) {
             alert('Sila tekan butang "💾 Simpan Maklumat Anak ' + getOrdinal(k) + '" terlebih dahulu sebelum menghantar borang.');
             document.getElementById('childCard_' + k).scrollIntoView({ behavior: 'smooth', block: 'start' });
             return;
         }
+    }
+
+    if (!document.getElementById('chkPdpa').checked) {
+        alert('Sila tandakan kotak persetujuan Perakuan Perlindungan Data Peribadi (PDPA) sebelum menghantar pendaftaran.');
+        document.getElementById('chkPdpa').focus();
+        return;
     }
 
     var btnSubmit = document.querySelector('.btn-submit');
@@ -986,15 +1173,26 @@ document.getElementById('pttdForm').addEventListener('submit', function(e) {
         var finalStatus = "BARU";
         if (verifiedOldStudent[i] === true) finalStatus = "LAMA";
         else if (unverifiedOldClaim[i] === true) finalStatus = "BARU (Semak Admin)";
+
+        var gradeVal = document.getElementById('grade2027_' + i).value;
+        var streamFinal = (gradeVal === "Form 4" || gradeVal === "Form 5") ? getFieldValueWithOther(i, 'schoolStream') : "";
         
         childrenDataArray.push({
             studentStatus: finalStatus,
             studentName: document.getElementById('studentName_' + i).value,
             icNumber: document.getElementById('icNumber_' + i).value,
+            gender: document.getElementById('gender_' + i).value,
+            birthDate: document.getElementById('birthDate_' + i).value,
+            race: getFieldValueWithOther(i, 'race'),
+            religion: getFieldValueWithOther(i, 'religion'),
             startDate: document.getElementById('startDate_' + i).value,
-            grade2027: document.getElementById('grade2027_' + i).value,
+            grade2027: gradeVal,
             schoolName: document.getElementById('schoolName_' + i).value,
+            schoolClassName: document.getElementById('schoolClassName_' + i).value,
             schoolClassType: document.getElementById('schoolClassType_' + i).value,
+            schoolStream: streamFinal,
+            healthAllergies: getHealthOrSpecialValue(i, 'health'),
+            specialLearning: getHealthOrSpecialValue(i, 'special'),
             guardianName: document.getElementById('guardianName').value,
             homeAddress: document.getElementById('homeAddress').value,
             fatherPhone: fVal,
@@ -1004,7 +1202,8 @@ document.getElementById('pttdForm').addEventListener('submit', function(e) {
             branchSelect: document.getElementById('branchSelect_' + i).value,
             classFormat: document.getElementById('classFormat_' + i).value,
             selectedSubjects: checkedSubjects,
-            mediaConsent: document.querySelector('input[name="mediaConsent"]:checked').value
+            mediaConsent: document.querySelector('input[name="mediaConsent"]:checked').value,
+            pdpaConsent: document.getElementById('chkPdpa').checked ? "SETUJU" : "TIDAK"
         });
     }
 
