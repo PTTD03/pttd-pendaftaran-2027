@@ -667,6 +667,27 @@ function getFieldValueWithOther(index, fieldPrefix) {
     return sel.value;
 }
 
+function formatGradeDisplayLabel(gradeCode) {
+    var map = {
+        "Membaca": "Kelas Membaca (BM & BI)",
+        "Form 1": "Tingkatan 1",
+        "Form 2": "Tingkatan 2",
+        "Form 3": "Tingkatan 3",
+        "Form 4": "Tingkatan 4",
+        "Form 5": "Tingkatan 5"
+    };
+    return map[gradeCode] || gradeCode;
+}
+
+function formatClassFormatLabel(formatCode) {
+    var map = {
+        "Regular": "Kelas Biasa",
+        "SmallGroup": "Kumpulan Kecil",
+        "Personal": "Kelas Personal (1-to-1)"
+    };
+    return map[formatCode] || formatCode;
+}
+
 function saveChildCard(index) {
     var ord = getOrdinal(index);
     var sName = document.getElementById('studentName_' + index).value.trim();
@@ -733,7 +754,7 @@ function saveChildCard(index) {
         <div style="margin-top:4px;">
             • <strong>Nama:</strong> ${sName.toUpperCase()} (${sGender} | ${statusLabel})<br>
             • <strong>No. MyKad/MyKid:</strong> ${sIC} | <strong>Tarikh Lahir:</strong> ${sBirth}<br>
-            • <strong>Sekolah:</strong> ${sSchool} (Kelas: ${sClassName}) | <strong>Tingkatan/Tahun:</strong> ${sGrade} (${branch})${streamInfo}<br>
+            • <strong>Sekolah:</strong> ${sSchool} (Kelas: ${sClassName}) | <strong>Tingkatan/Tahun:</strong> ${formatGradeDisplayLabel(sGrade)} (${branch})${streamInfo}<br>
             • <strong>Kesihatan/Alahan:</strong> ${healthText} | <strong>Keperluan Khas:</strong> ${specialText}<br>
             • <strong>Subjek (${checkedSubjs.length}):</strong> ${checkedSubjs.join(', ')}
         </div>
@@ -1167,24 +1188,46 @@ document.getElementById('pttdForm').addEventListener('submit', function(e) {
     var childrenDataArray = [];
     var feeText = document.getElementById('feeBreakdownDisplay').innerText;
     var hasUnverifiedOldStudent = false;
+    var studentDetailsReceiptHTML = "";
     
     for (var i = 1; i <= activeChildCount; i++) {
+        var ord = getOrdinal(i);
         var checkedSubjects = Array.from(document.querySelectorAll('.subj-item-' + i + ':checked')).map(cb => cb.value).join(', ');
         var finalStatus = "BARU";
+        var statusBadgeText = "Pelajar Baharu";
+
         if (verifiedOldStudent[i] === true) {
             finalStatus = "LAMA";
+            statusBadgeText = "Pelajar Lama (Disahkan)";
         } else if (unverifiedOldClaim[i] === true) {
             finalStatus = "BARU (Semak Admin)";
+            statusBadgeText = "Pelajar Lama (Semakan Admin)";
             hasUnverifiedOldStudent = true;
         }
 
+        var sNameVal = document.getElementById('studentName_' + i).value.trim();
+        var sICVal = document.getElementById('icNumber_' + i).value.trim();
         var gradeVal = document.getElementById('grade2027_' + i).value;
+        var branchVal = document.getElementById('branchSelect_' + i).value;
+        var formatVal = document.getElementById('classFormat_' + i).value;
         var streamFinal = (gradeVal === "Form 4" || gradeVal === "Form 5") ? getFieldValueWithOther(i, 'schoolStream') : "";
+
+        studentDetailsReceiptHTML += `
+            <div style="background: white; border: 1px solid #BFDBFE; border-radius: 6px; padding: 12px; margin-bottom: ${i < activeChildCount ? '10px' : '0'}; font-size: 13.5px; line-height: 1.65; color: #1E293B;">
+                <div style="font-weight: bold; color: #1E3A8A; border-bottom: 1px solid #E2E8F0; padding-bottom: 4px; margin-bottom: 6px;">
+                    Anak ${ord}: ${sNameVal.toUpperCase()} <span style="font-weight: normal; font-size: 12px; color: #475569;">(${statusBadgeText})</span>
+                </div>
+                <div>• <strong>No. MyKad / MyKid:</strong> ${sICVal}</div>
+                <div>• <strong>Tahun / Tingkatan:</strong> ${formatGradeDisplayLabel(gradeVal)} (${formatClassFormatLabel(formatVal)})</div>
+                <div>• <strong>Cawangan:</strong> ${branchVal}</div>
+                <div>• <strong>Subjek Diambil:</strong> ${checkedSubjects}</div>
+            </div>
+        `;
         
         childrenDataArray.push({
             studentStatus: finalStatus,
-            studentName: document.getElementById('studentName_' + i).value,
-            icNumber: document.getElementById('icNumber_' + i).value,
+            studentName: sNameVal,
+            icNumber: sICVal,
             gender: document.getElementById('gender_' + i).value,
             birthDate: document.getElementById('birthDate_' + i).value,
             race: getFieldValueWithOther(i, 'race'),
@@ -1203,8 +1246,8 @@ document.getElementById('pttdForm').addEventListener('submit', function(e) {
             motherPhone: mVal,
             studentPhone: document.getElementById('studentPhone_' + i).value,
             learningMode: 'FIZIKAL',
-            branchSelect: document.getElementById('branchSelect_' + i).value,
-            classFormat: document.getElementById('classFormat_' + i).value,
+            branchSelect: branchVal,
+            classFormat: formatVal,
             selectedSubjects: checkedSubjects,
             mediaConsent: document.querySelector('input[name="mediaConsent"]:checked').value,
             pdpaConsent: document.getElementById('chkPdpa').checked ? "SETUJU" : "TIDAK"
@@ -1244,6 +1287,11 @@ document.getElementById('pttdForm').addEventListener('submit', function(e) {
                 <img src="https://lh3.googleusercontent.com/d/1WlMIwoIseQSpgEN7-CjLmnIOInagk1o2" style="max-width: 180px; height: auto;" alt="Logo PTTD">
                 <h2 style="color: #1E3A8A; margin: 10px 0 2px 0;">PUSAT TUISYEN TERAJU DIDIK</h2>
                 <h3 style="background: #1E3A8A; color: white; display: inline-block; padding: 4px 15px; border-radius: 4px; margin-top: 12px; font-size: 16px;">Pengesahan Pendaftaran (${activeChildCount} Orang Pelajar)</h3>
+            </div>
+
+            <div style="background: #F8FAFC; border: 1px solid #CBD5E1; border-radius: 8px; padding: 15px; margin-top: 15px;">
+                <h4 style="margin: 0 0 10px 0; color: #1E3A8A;">📋 Butiran Pendaftaran Pelajar</h4>
+                ${studentDetailsReceiptHTML}
             </div>
 
             <div style="background: #FFFBEB; border: 1px dashed #F59E0B; border-radius: 8px; padding: 15px; margin-top: 15px;">
