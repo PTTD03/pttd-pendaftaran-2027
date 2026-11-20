@@ -355,7 +355,7 @@ var subjectsDataRegular = {
     "Tahun 4": ["Bahasa Melayu", "Bahasa Inggeris", "Matematik", "Sains", "Sejarah"],
     "Tahun 5": ["Bahasa Melayu", "Bahasa Inggeris", "Matematik", "Sains", "Sejarah"],
     "Tahun 6": ["Bahasa Melayu", "Bahasa Inggeris", "Matematik", "Sains", "Sejarah"],
-    "Form 1": ["Bahasa Melayu", "Bahasa Inggeris", "Matematik", "Sains"],
+    "Form 1": ["Bahasa Melayu", "Bahasa Inggeris", "Matematik", "Sains", "Sejarah"],
     "Form 2": ["Bahasa Melayu", "Bahasa Inggeris", "Matematik", "Sains", "Sejarah", "Geografi"],
     "Form 3": ["Bahasa Melayu", "Bahasa Inggeris", "Matematik", "Sains", "Sejarah", "Geografi"],
     "Form 4": ["Bahasa Melayu", "Bahasa Inggeris", "Matematik", "Sains", "Sejarah", "Matematik Tambahan", "Fizik", "Kimia", "Biologi", "Perniagaan", "Prinsip Akaun"],
@@ -368,7 +368,7 @@ var subjectsDataFull = {
     "Tahun 4": ["Bahasa Melayu", "Bahasa Inggeris", "Matematik", "Sains", "Sejarah"],
     "Tahun 5": ["Bahasa Melayu", "Bahasa Inggeris", "Matematik", "Sains", "Sejarah"],
     "Tahun 6": ["Bahasa Melayu", "Bahasa Inggeris", "Matematik", "Sains", "Sejarah"],
-    "Form 1": ["Bahasa Melayu", "Bahasa Inggeris", "Matematik", "Sains"],
+    "Form 1": ["Bahasa Melayu", "Bahasa Inggeris", "Matematik", "Sains", "Sejarah"],
     "Form 2": ["Bahasa Melayu", "Bahasa Inggeris", "Matematik", "Sains", "Sejarah", "Geografi"],
     "Form 3": ["Bahasa Melayu", "Bahasa Inggeris", "Matematik", "Sains", "Sejarah", "Geografi"],
     "Form 4": ["Bahasa Melayu", "Bahasa Inggeris", "Matematik", "Sains", "Sejarah", "Matematik Tambahan", "Fizik", "Kimia", "Biologi", "Perniagaan", "Prinsip Akaun"],
@@ -1040,7 +1040,7 @@ function computeMonthlyFee(grade, format, pkgVal, selectedSubjectNames) {
 
     if (grade === "Form 1") {
         if (count === 1) return 60;
-        if (count >= 4) return 160;
+        if (count >= 4) return 180;
         return count * 45;
     }
 
@@ -1166,12 +1166,17 @@ document.getElementById('pttdForm').addEventListener('submit', function(e) {
 
     var childrenDataArray = [];
     var feeText = document.getElementById('feeBreakdownDisplay').innerText;
+    var hasUnverifiedOldStudent = false;
     
     for (var i = 1; i <= activeChildCount; i++) {
         var checkedSubjects = Array.from(document.querySelectorAll('.subj-item-' + i + ':checked')).map(cb => cb.value).join(', ');
         var finalStatus = "BARU";
-        if (verifiedOldStudent[i] === true) finalStatus = "LAMA";
-        else if (unverifiedOldClaim[i] === true) finalStatus = "BARU (Semak Admin)";
+        if (verifiedOldStudent[i] === true) {
+            finalStatus = "LAMA";
+        } else if (unverifiedOldClaim[i] === true) {
+            finalStatus = "BARU (Semak Admin)";
+            hasUnverifiedOldStudent = true;
+        }
 
         var gradeVal = document.getElementById('grade2027_' + i).value;
         var streamFinal = (gradeVal === "Form 4" || gradeVal === "Form 5") ? getFieldValueWithOther(i, 'schoolStream') : "";
@@ -1210,7 +1215,8 @@ document.getElementById('pttdForm').addEventListener('submit', function(e) {
         method: 'POST',
         body: JSON.stringify({ 
             multipleStudents: childrenDataArray,
-            fullFeeTextSummary: feeText
+            fullFeeTextSummary: feeText,
+            hasUnverifiedOldStudent: hasUnverifiedOldStudent
         })
     })
     .then(response => {
@@ -1225,6 +1231,14 @@ document.getElementById('pttdForm').addEventListener('submit', function(e) {
             `<img src="https://lh3.googleusercontent.com/d/1-6rT6ffmVbbEYavqMGFIO0dqVbx5VlG7" style="max-width:160px;border-radius:6px;margin-top:8px;" alt="QR Pasir Puteh">` : 
             `<img src="https://lh3.googleusercontent.com/d/1u2kddB3qKviThLXRUmuXqt_RIQCNq4Wg" style="max-width:160px;border-radius:6px;margin-top:8px;" alt="QR Pengkalan">`;
 
+        var unverifiedAdminWarningHTML = hasUnverifiedOldStudent ? `
+            <div style="background: #FEF2F2; border: 2px solid #F87171; border-radius: 8px; padding: 14px 16px; margin-top: 15px; font-size: 13.5px; line-height: 1.6; color: #991B1B;">
+                <strong>⚠️ PERHATIAN PENTING (SEMAKAN REKOD PELAJAR LAMA):</strong><br>
+                Oleh kerana No. MyKad/MyKid anak anda tidak ditemui dalam rekod sistem semasa pendaftaran, sistem telah mengira caj <strong>Yuran Pendaftaran (RM 25)</strong> secara sementara.<br><br>
+                👉 <strong>Sila hubungi / WhatsApp pihak Pejabat PTTD terlebih dahulu sebelum membuat pembayaran melalui QR di bawah</strong> untuk mengesahkan bahawa anak anda pernah mengikuti tuisyen di PTTD. Pihak pejabat akan mengecualikan (<em>waive</em>) caj RM 25 tersebut selepas pengesahan dibuat.
+            </div>
+        ` : '';
+
         container.innerHTML = `
             <div style="text-align: center; border-bottom: 2px solid #1E3A8A; padding-bottom: 15px; margin-bottom: 20px;">
                 <img src="https://lh3.googleusercontent.com/d/1WlMIwoIseQSpgEN7-CjLmnIOInagk1o2" style="max-width: 180px; height: auto;" alt="Logo PTTD">
@@ -1238,6 +1252,8 @@ document.getElementById('pttdForm').addEventListener('submit', function(e) {
                     ${feeText}
                 </div>
             </div>
+
+            ${unverifiedAdminWarningHTML}
 
             <div style="background: #EFF6FF; border: 1px solid #BFDBFE; border-radius: 8px; padding: 15px; margin-top: 15px; text-align: center;">
                 <h4 style="margin: 0 0 6px 0; color: #1E3A8A;">🏦 Maklumat Pembayaran PTTD</h4>
