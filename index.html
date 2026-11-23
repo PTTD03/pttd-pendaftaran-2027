@@ -35,7 +35,32 @@
         .logo-img { max-width: 100%; height: auto; border-radius: 8px; }
         
         h1 { color: var(--primary); text-align: center; margin: 0 0 5px 0; font-size: 24px; }
-        p.subtitle { text-align: center; color: #6B7280; margin: 0 0 25px 0; font-size: 14px; }
+        p.subtitle { text-align: center; color: #6B7280; margin: 0 0 15px 0; font-size: 14px; }
+
+        .draft-banner {
+            background: #ECFDF5;
+            border: 1px solid #6EE7B7;
+            color: #065F46;
+            padding: 9px 14px;
+            border-radius: 8px;
+            font-size: 12.5px;
+            margin-bottom: 18px;
+            display: none;
+            justify-content: space-between;
+            align-items: center;
+            gap: 10px;
+        }
+        .btn-reset-draft {
+            background: #DC2626;
+            color: white;
+            border: none;
+            padding: 4px 10px;
+            border-radius: 5px;
+            font-size: 11.5px;
+            font-weight: bold;
+            cursor: pointer;
+            white-space: nowrap;
+        }
         
         .section-title { background: #EFF6FF; border-left: 4px solid var(--primary); padding: 8px 12px; font-weight: bold; color: var(--primary); margin: 25px 0 12px 0; border-radius: 0 6px 6px 0; font-size: 15px; }
         .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
@@ -123,6 +148,13 @@
 
         .btn-submit { background: var(--primary); color: white; border: none; padding: 14px 24px; font-size: 16px; font-weight: bold; border-radius: 8px; cursor: pointer; width: 100%; margin-top: 25px; }
         .btn-submit:hover { background: #1E40AF; }
+        .btn-submit:disabled { background: #94A3B8; cursor: not-allowed; }
+
+        .field-error {
+            border: 2px solid #DC2626 !important;
+            background-color: #FEF2F2 !important;
+            box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.15) !important;
+        }
     </style>
 </head>
 <body>
@@ -135,7 +167,13 @@
     <h1>Pusat Tuisyen Teraju Didik</h1>
     <p class="subtitle">Borang Pendaftaran Pelajar Sesi 2027 (Pengkalan / Pasir Puteh)</p>
 
-    <form id="pttdForm">
+    <!-- NOTIFIKASI DRAF AUTO-SIMPAN -->
+    <div id="draftBanner" class="draft-banner">
+        <span>💾 <strong>Draf borang dipulihkan secara automatik.</strong> (Fail gambar/PDF perlu dipilih semula jika ada).</span>
+        <button type="button" class="btn-reset-draft" onclick="clearDraftAndReset()">Padam Draf</button>
+    </div>
+
+    <form id="pttdForm" novalidate>
 
         <!-- 1. MAKLUMAT PELAJAR, SUBJEK & DOKUMEN -->
         <div class="section-title">1. Maklumat Pelajar, Subjek & Dokumen</div>
@@ -250,7 +288,7 @@
             <h5>8. Keselamatan & Tanggungjawab</h5>
             <ul>
                 <li>Pusat tuisyen hanya bertanggungjawab ke atas pelajar semasa waktu kelas sahaja.</li>
-                <li>Ibu bapa/penjaga wajib mengambil pelajar tepat pada masanya. Jika ibu/bapa/penjaga lambat untuk menjemput pelajar, diminta memaklumkan kepada pihak pusat tuisyen terlebih dahulu.</li>
+                <li>Ibu bapa/penjaga wajib mengambil pelajar tepat pada waktunya. Jika ibu/bapa/penjaga lambat untuk menjemput pelajar, diminta memaklumkan kepada pihak pusat tuisyen terlebih dahulu.</li>
                 <li>Pusat tuisyen tidak bertanggungjawab diatas sebarang kehilangan barang peribadi.</li>
                 <li>Sebarang kecuaian atau tindakan pelajar yang mengakibatkan kerosakan harta benda atau kecederaan akan ditanggung oleh pihak ibu bapa/penjaga.</li>
             </ul>
@@ -273,7 +311,7 @@
             </ul>
         </div>
 
-        <div class="agreement-box">
+        <div class="agreement-box" id="boxAgree1">
             <label style="font-weight: bold; margin-bottom: 8px; display: block;">Pengesahan & Persetujuan *</label>
             <label class="checkbox-item">
                 <input type="checkbox" id="chkAgree1" required>
@@ -298,7 +336,7 @@
         </div>
 
         <!-- PERAKUAN PERLINDUNGAN DATA PERIBADI (PDPA) -->
-        <div class="pdpa-box">
+        <div class="pdpa-box" id="boxPdpa">
             <label style="font-weight: bold; margin-bottom: 8px; display: block; color: var(--primary);">Perakuan Perlindungan Data Peribadi (PDPA) *</label>
             <div class="pdpa-text">
                 "Saya mengesahkan bahawa semua maklumat yang diberikan adalah benar dan tepat. Saya memberi kebenaran kepada pihak <strong>Pusat Tuisyen Teraju Didik</strong> untuk mengumpul, menyimpan, dan memproses data peribadi saya serta anak/jagaan saya bagi tujuan rekod pendaftaran, pengurusan kelas, pengebilan yuran/resit, keselamatan, dan komunikasi rasmi selaras dengan Akta Perlindungan Data Peribadi 2010 (PDPA)."
@@ -315,13 +353,27 @@
 
 <script>
 var scriptURL = 'https://script.google.com/macros/s/AKfycbyEte8xaAluH_sX3tAxcKi2umpyrQNhvJ-tb6HHgs6pnwr3nmPi-Z9v8mZgt5IKkFo/exec';
+
+// =========================================================================
+// NOMBOR WHATSAPP RASMI CAWANGAN (FORMAT 601XXXXXXX)
+// =========================================================================
+var WHATSAPP_NUMBERS = {
+    "Pengkalan": "60195702760",
+    "Pasir Puteh": "60199272760"
+};
+
+var DRAFT_STORAGE_KEY = 'pttd_registration_draft_2027_v1';
+var isRestoringDraft = false;
+
 var activeChildCount = 0;
 var MAX_CHILDREN = 5;
+var MAX_FILE_SIZE_MB = 5;
 var ordinalWords = ["Pertama", "Kedua", "Ketiga", "Keempat", "Kelima"];
 
 var verifiedOldStudent = {};
 var unverifiedOldClaim = {};
 var childSavedState = {};
+var childTotalsByIndex = {};
 
 function getOrdinal(index) {
     return ordinalWords[index - 1] || ("Ke-" + index);
@@ -370,7 +422,7 @@ var subjectsDataFull = {
     "Form 5": ["Bahasa Melayu", "Bahasa Inggeris", "Matematik", "Sains", "Sejarah", "Matematik Tambahan", "Fizik", "Kimia", "Biologi", "Perniagaan", "Prinsip Akaun"]
 };
 
-function addNextChild() {
+function addNextChild(skipScroll) {
     if (activeChildCount >= MAX_CHILDREN) return;
     activeChildCount++;
     var i = activeChildCount;
@@ -379,6 +431,7 @@ function addNextChild() {
     verifiedOldStudent[i] = false;
     unverifiedOldClaim[i] = false;
     childSavedState[i] = false;
+    childTotalsByIndex[i] = 0;
 
     var container = document.getElementById('childrenContainer');
     var card = document.createElement('div');
@@ -590,15 +643,15 @@ function addNextChild() {
 
             <div class="file-upload-box grid">
                 <div class="form-group">
-                    <label>1. Salinan IC Pelajar (Anak ${ord}) - Pilihan</label>
-                    <input type="file" id="fileIC_${i}" accept="image/*,.pdf">
+                    <label>1. Salinan IC Pelajar (Anak ${ord}) - Pilihan (Maks 5MB)</label>
+                    <input type="file" id="fileIC_${i}" accept="image/*,.pdf" onchange="validateFileSize(this)">
                 </div>
                 <div class="form-group">
-                    <label>2. Salinan Keputusan Akhir Sekolah (Anak ${ord}) - Pilihan</label>
-                    <input type="file" id="fileResult_${i}" accept="image/*,.pdf">
+                    <label>2. Salinan Keputusan Akhir Sekolah (Anak ${ord}) - Pilihan (Maks 5MB)</label>
+                    <input type="file" id="fileResult_${i}" accept="image/*,.pdf" onchange="validateFileSize(this)">
                 </div>
                 <div class="upload-notice">
-                    📌 <strong>Nota:</strong> Sekiranya menghadapi sebarang ralat muat naik, salinan dokumen Anak ${ord} boleh terus dihantar ke <strong>WhatsApp Pejabat PTTD</strong>.
+                    📌 <strong>Nota:</strong> Fail akan disimpan secara automatik dalam sistem pendaftaran. Sekiranya menghadapi sebarang ralat muat naik, salinan dokumen Anak ${ord} boleh terus dihantar ke <strong>WhatsApp Pejabat PTTD</strong>.
                 </div>
             </div>
 
@@ -612,9 +665,228 @@ function addNextChild() {
     updateAddNextBoxVisibility();
     calculateTotalFees();
 
-    if (i > 1) {
+    if (i > 1 && !skipScroll) {
         card.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
+    saveDraftToLocalStorage();
+}
+
+// =========================================================================
+// AUTO-SIMPAN DRAF SEMENTARA (LOCALSTORAGE)
+// =========================================================================
+function saveDraftToLocalStorage() {
+    if (isRestoringDraft) return;
+    try {
+        var childrenDraft = [];
+        for (var i = 1; i <= activeChildCount; i++) {
+            var checkedSubjs = Array.from(document.querySelectorAll('.subj-item-' + i + ':checked')).map(function(cb) { return cb.value; });
+            var pkgEl = document.getElementById('packageSelect_' + i);
+            childrenDraft.push({
+                status: verifiedOldStudent[i] ? 'LAMA' : (document.getElementById('radioLama_' + i).checked ? 'LAMA' : 'BARU'),
+                verifiedOld: !!verifiedOldStudent[i],
+                unverifiedOld: !!unverifiedOldClaim[i],
+                savedState: !!childSavedState[i],
+                studentName: document.getElementById('studentName_' + i).value,
+                icNumber: document.getElementById('icNumber_' + i).value,
+                gender: document.getElementById('gender_' + i).value,
+                birthDate: document.getElementById('birthDate_' + i).value,
+                startDate: document.getElementById('startDate_' + i).value,
+                race: document.getElementById('race_' + i).value,
+                raceOther: document.getElementById('raceOther_' + i).value,
+                religion: document.getElementById('religion_' + i).value,
+                religionOther: document.getElementById('religionOther_' + i).value,
+                grade2027: document.getElementById('grade2027_' + i).value,
+                schoolName: document.getElementById('schoolName_' + i).value,
+                schoolClassName: document.getElementById('schoolClassName_' + i).value,
+                schoolClassType: document.getElementById('schoolClassType_' + i).value,
+                schoolStream: document.getElementById('schoolStream_' + i).value,
+                schoolStreamOther: document.getElementById('schoolStreamOther_' + i).value,
+                studentPhone: document.getElementById('studentPhone_' + i).value,
+                branchSelect: document.getElementById('branchSelect_' + i).value,
+                classFormat: document.getElementById('classFormat_' + i).value,
+                healthCategory: document.getElementById('healthCategory_' + i).value,
+                healthDetail: document.getElementById('healthDetail_' + i).value,
+                specialCategory: document.getElementById('specialCategory_' + i).value,
+                specialDetail: document.getElementById('specialDetail_' + i).value,
+                packageSelect: pkgEl ? pkgEl.value : '',
+                selectedSubjects: checkedSubjs
+            });
+        }
+
+        var draftPayload = {
+            savedAt: Date.now(),
+            children: childrenDraft,
+            guardianName: document.getElementById('guardianName').value,
+            homeAddress: document.getElementById('homeAddress').value,
+            fatherPhone: document.getElementById('fatherPhone').value,
+            motherPhone: document.getElementById('motherPhone').value,
+            mediaConsent: document.querySelector('input[name="mediaConsent"]:checked').value,
+            chkAgree1: document.getElementById('chkAgree1').checked,
+            chkAgree2: document.getElementById('chkAgree2').checked,
+            chkPdpa: document.getElementById('chkPdpa').checked
+        };
+
+        localStorage.setItem(DRAFT_STORAGE_KEY, JSON.stringify(draftPayload));
+    } catch (err) {}
+}
+
+function restoreDraftFromLocalStorage() {
+    try {
+        var raw = localStorage.getItem(DRAFT_STORAGE_KEY);
+        if (!raw) return false;
+        var draft = JSON.parse(raw);
+        if (!draft || !draft.children || draft.children.length === 0) return false;
+
+        var hasContent = draft.guardianName || draft.homeAddress || draft.children.some(function(c) {
+            return c.studentName || c.icNumber || c.grade2027;
+        });
+        if (!hasContent) return false;
+
+        isRestoringDraft = true;
+
+        for (var idx = 0; idx < draft.children.length; idx++) {
+            var cData = draft.children[idx];
+            var i = idx + 1;
+            addNextChild(true);
+
+            if (cData.status === 'LAMA') {
+                document.getElementById('radioLama_' + i).checked = true;
+                toggleChildStatus(i, 'LAMA');
+            }
+            verifiedOldStudent[i] = !!cData.verifiedOld;
+            unverifiedOldClaim[i] = !!cData.unverifiedOld;
+            if (verifiedOldStudent[i]) {
+                document.getElementById('verifiedBadge_' + i).style.display = 'inline-block';
+            } else if (unverifiedOldClaim[i]) {
+                document.getElementById('unverifiedNotice_' + i).style.display = 'block';
+            }
+
+            document.getElementById('studentName_' + i).value = cData.studentName || '';
+            document.getElementById('icNumber_' + i).value = cData.icNumber || '';
+            onICInputForChild(i);
+
+            document.getElementById('gender_' + i).value = cData.gender || '';
+            document.getElementById('birthDate_' + i).value = cData.birthDate || '';
+            document.getElementById('startDate_' + i).value = cData.startDate || '';
+
+            document.getElementById('race_' + i).value = cData.race || '';
+            toggleOtherInput(i, 'race');
+            document.getElementById('raceOther_' + i).value = cData.raceOther || '';
+
+            document.getElementById('religion_' + i).value = cData.religion || '';
+            toggleOtherInput(i, 'religion');
+            document.getElementById('religionOther_' + i).value = cData.religionOther || '';
+
+            document.getElementById('grade2027_' + i).value = cData.grade2027 || '';
+            onChildGradeChange(i);
+
+            document.getElementById('schoolName_' + i).value = cData.schoolName || '';
+            document.getElementById('schoolClassName_' + i).value = cData.schoolClassName || '';
+            document.getElementById('schoolClassType_' + i).value = cData.schoolClassType || 'Biasa (BM)';
+
+            document.getElementById('schoolStream_' + i).value = cData.schoolStream || '';
+            toggleOtherInput(i, 'schoolStream');
+            document.getElementById('schoolStreamOther_' + i).value = cData.schoolStreamOther || '';
+
+            document.getElementById('studentPhone_' + i).value = cData.studentPhone || '';
+            if (cData.branchSelect && !document.getElementById('branchSelect_' + i).disabled) {
+                document.getElementById('branchSelect_' + i).value = cData.branchSelect;
+            }
+            document.getElementById('classFormat_' + i).value = cData.classFormat || 'Regular';
+            loadSubjectsForChild(i);
+
+            document.getElementById('healthCategory_' + i).value = cData.healthCategory || 'Tiada';
+            toggleHealthOrSpecialDetail(i, 'health');
+            document.getElementById('healthDetail_' + i).value = cData.healthDetail || '';
+
+            document.getElementById('specialCategory_' + i).value = cData.specialCategory || 'Tiada';
+            toggleHealthOrSpecialDetail(i, 'special');
+            document.getElementById('specialDetail_' + i).value = cData.specialDetail || '';
+
+            var pkgEl = document.getElementById('packageSelect_' + i);
+            if (pkgEl && cData.packageSelect) {
+                pkgEl.value = cData.packageSelect;
+                handleChildPackageChange(i);
+            }
+
+            if (Array.isArray(cData.selectedSubjects)) {
+                document.querySelectorAll('.subj-item-' + i).forEach(function(cb) {
+                    if (!cb.disabled) {
+                        cb.checked = cData.selectedSubjects.includes(cb.value);
+                    }
+                });
+            }
+
+            if (cData.savedState) {
+                saveChildCard(i);
+            }
+        }
+
+        document.getElementById('guardianName').value = draft.guardianName || '';
+        document.getElementById('homeAddress').value = draft.homeAddress || '';
+        document.getElementById('fatherPhone').value = draft.fatherPhone || '';
+        document.getElementById('motherPhone').value = draft.motherPhone || '';
+
+        if (draft.mediaConsent) {
+            var radioMedia = document.querySelector('input[name="mediaConsent"][value="' + draft.mediaConsent + '"]');
+            if (radioMedia) radioMedia.checked = true;
+        }
+        document.getElementById('chkAgree1').checked = !!draft.chkAgree1;
+        document.getElementById('chkAgree2').checked = !!draft.chkAgree2;
+        document.getElementById('chkPdpa').checked = !!draft.chkPdpa;
+
+        isRestoringDraft = false;
+        calculateTotalFees();
+        document.getElementById('draftBanner').style.display = 'flex';
+        return true;
+    } catch (err) {
+        isRestoringDraft = false;
+        return false;
+    }
+}
+
+function clearDraftAndReset() {
+    if (confirm('Adakah anda pasti ingin memadam draf borang ini dan mula semula dari kosong?')) {
+        localStorage.removeItem(DRAFT_STORAGE_KEY);
+        location.reload();
+    }
+}
+
+document.getElementById('pttdForm').addEventListener('input', saveDraftToLocalStorage);
+document.getElementById('pttdForm').addEventListener('change', saveDraftToLocalStorage);
+
+function validateFileSize(inputEl) {
+    if (inputEl.files && inputEl.files[0]) {
+        var fileSizeMB = inputEl.files[0].size / (1024 * 1024);
+        if (fileSizeMB > MAX_FILE_SIZE_MB) {
+            alert('Saiz fail melebihi had ' + MAX_FILE_SIZE_MB + 'MB. Sila pilih fail yang lebih kecil atau hantar terus ke WhatsApp Pejabat PTTD.');
+            inputEl.value = '';
+        }
+    }
+}
+
+function readFileAsBase64Obj(fileInput) {
+    return new Promise(function(resolve) {
+        if (!fileInput || !fileInput.files || !fileInput.files[0]) {
+            resolve(null);
+            return;
+        }
+        var file = fileInput.files[0];
+        var reader = new FileReader();
+        reader.onload = function(e) {
+            var dataUrl = e.target.result;
+            var base64Data = dataUrl.split(',')[1];
+            resolve({
+                name: file.name,
+                mimeType: file.type || 'application/octet-stream',
+                data: base64Data
+            });
+        };
+        reader.onerror = function() {
+            resolve(null);
+        };
+        reader.readAsDataURL(file);
+    });
 }
 
 function toggleOtherInput(index, fieldPrefix) {
@@ -683,6 +955,37 @@ function formatClassFormatLabel(formatCode) {
     return map[formatCode] || formatCode;
 }
 
+function showFieldErrorAndScroll(elementId, errorMessage, childIndexToOpen) {
+    document.querySelectorAll('.field-error').forEach(function(el) {
+        el.classList.remove('field-error');
+    });
+
+    if (childIndexToOpen && childSavedState[childIndexToOpen]) {
+        editChildCard(childIndexToOpen);
+    }
+
+    alert('⚠️ MAKLUMAT BELUM LENGKAP:\n\n' + errorMessage);
+
+    var targetEl = document.getElementById(elementId);
+    if (targetEl) {
+        targetEl.classList.add('field-error');
+        targetEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        setTimeout(function() {
+            if (typeof targetEl.focus === 'function') {
+                targetEl.focus();
+            }
+        }, 350);
+
+        var clearErr = function() {
+            targetEl.classList.remove('field-error');
+            targetEl.removeEventListener('input', clearErr);
+            targetEl.removeEventListener('change', clearErr);
+        };
+        targetEl.addEventListener('input', clearErr);
+        targetEl.addEventListener('change', clearErr);
+    }
+}
+
 function saveChildCard(index) {
     var ord = getOrdinal(index);
     var sName = document.getElementById('studentName_' + index).value.trim();
@@ -701,39 +1004,46 @@ function saveChildCard(index) {
     var sStreamOther = document.getElementById('schoolStreamOther_' + index).value.trim();
     var checkedSubjs = Array.from(document.querySelectorAll('.subj-item-' + index + ':checked')).map(cb => cb.value);
 
-    if (!sName) { alert('Sila masukkan Nama Penuh Pelajar untuk Anak ' + ord + '.'); document.getElementById('studentName_' + index).focus(); return; }
-    if (!sIC || sIC.length < 6) { alert('Sila masukkan No. MyKad / MyKid Pelajar yang sah untuk Anak ' + ord + '.'); document.getElementById('icNumber_' + index).focus(); return; }
-    if (!sGender) { alert('Sila pilih Jantina untuk Anak ' + ord + '.'); document.getElementById('gender_' + index).focus(); return; }
-    if (!sBirth) { alert('Sila pilih Tarikh Lahir untuk Anak ' + ord + '.'); document.getElementById('birthDate_' + index).focus(); return; }
-    if (!sDate) { alert('Sila pilih Tarikh Mula Kelas untuk Anak ' + ord + '.'); document.getElementById('startDate_' + index).focus(); return; }
-    if (!sRaceSel) { alert('Sila pilih Bangsa untuk Anak ' + ord + '.'); document.getElementById('race_' + index).focus(); return; }
-    if (sRaceSel === 'Lain-lain' && !sRaceOther) { alert('Sila nyatakan Bangsa pada ruangan disediakan untuk Anak ' + ord + '.'); document.getElementById('raceOther_' + index).focus(); return; }
-    if (!sRelSel) { alert('Sila pilih Agama untuk Anak ' + ord + '.'); document.getElementById('religion_' + index).focus(); return; }
-    if (sRelSel === 'Lain-lain' && !sRelOther) { alert('Sila nyatakan Agama pada ruangan disediakan untuk Anak ' + ord + '.'); document.getElementById('religionOther_' + index).focus(); return; }
-    if (!sGrade) { alert('Sila pilih Tahun / Tingkatan untuk Anak ' + ord + '.'); document.getElementById('grade2027_' + index).focus(); return; }
-    if (!sSchool) { alert('Sila masukkan Nama Sekolah untuk Anak ' + ord + '.'); document.getElementById('schoolName_' + index).focus(); return; }
-    if (!sClassName) { alert('Sila masukkan Kelas di Sekolah untuk Anak ' + ord + '.'); document.getElementById('schoolClassName_' + index).focus(); return; }
+    if (!sName) { showFieldErrorAndScroll('studentName_' + index, 'Sila masukkan Nama Penuh Pelajar untuk Anak ' + ord + '.', null); return; }
+    if (!sIC || sIC.length < 6) { showFieldErrorAndScroll('icNumber_' + index, 'Sila masukkan No. MyKad / MyKid Pelajar yang sah untuk Anak ' + ord + '.', null); return; }
+    if (!sGender) { showFieldErrorAndScroll('gender_' + index, 'Sila pilih Jantina untuk Anak ' + ord + '.', null); return; }
+    if (!sBirth) { showFieldErrorAndScroll('birthDate_' + index, 'Sila pilih Tarikh Lahir untuk Anak ' + ord + '.', null); return; }
+    if (!sDate) { showFieldErrorAndScroll('startDate_' + index, 'Sila pilih Tarikh Mula Kelas untuk Anak ' + ord + '.', null); return; }
+    if (!sRaceSel) { showFieldErrorAndScroll('race_' + index, 'Sila pilih Bangsa untuk Anak ' + ord + '.', null); return; }
+    if (sRaceSel === 'Lain-lain' && !sRaceOther) { showFieldErrorAndScroll('raceOther_' + index, 'Sila nyatakan Bangsa pada ruangan disediakan untuk Anak ' + ord + '.', null); return; }
+    if (!sRelSel) { showFieldErrorAndScroll('religion_' + index, 'Sila pilih Agama untuk Anak ' + ord + '.', null); return; }
+    if (sRelSel === 'Lain-lain' && !sRelOther) { showFieldErrorAndScroll('religionOther_' + index, 'Sila nyatakan Agama pada ruangan disediakan untuk Anak ' + ord + '.', null); return; }
+    if (!sGrade) { showFieldErrorAndScroll('grade2027_' + index, 'Sila pilih Tahun / Tingkatan untuk Anak ' + ord + '.', null); return; }
+    if (!sSchool) { showFieldErrorAndScroll('schoolName_' + index, 'Sila masukkan Nama Sekolah untuk Anak ' + ord + '.', null); return; }
+    if (!sClassName) { showFieldErrorAndScroll('schoolClassName_' + index, 'Sila masukkan Kelas di Sekolah untuk Anak ' + ord + '.', null); return; }
 
     if (sGrade === "Form 4" || sGrade === "Form 5") {
-        if (!sStreamSel) { alert('Sila pilih Aliran Kelas di Sekolah untuk Anak ' + ord + '.'); document.getElementById('schoolStream_' + index).focus(); return; }
-        if (sStreamSel === 'Lain-lain' && !sStreamOther) { alert('Sila nyatakan Aliran Kelas di Sekolah untuk Anak ' + ord + '.'); document.getElementById('schoolStreamOther_' + index).focus(); return; }
+        if (!sStreamSel) { showFieldErrorAndScroll('schoolStream_' + index, 'Sila pilih Aliran Kelas di Sekolah untuk Anak ' + ord + '.', null); return; }
+        if (sStreamSel === 'Lain-lain' && !sStreamOther) { showFieldErrorAndScroll('schoolStreamOther_' + index, 'Sila nyatakan Aliran Kelas di Sekolah untuk Anak ' + ord + '.', null); return; }
     }
 
-    if (checkedSubjs.length === 0) { alert('Sila pilih sekurang-kurangnya SATU subjek untuk Anak ' + ord + '.'); return; }
+    if (checkedSubjs.length === 0) {
+        showFieldErrorAndScroll('subjectListContainer_' + index, 'Sila pilih sekurang-kurangnya SATU subjek untuk Anak ' + ord + '.', null);
+        return;
+    }
 
     var format = document.getElementById('classFormat_' + index).value;
     var pkgEl = document.getElementById('packageSelect_' + index);
     var pkgVal = pkgEl ? pkgEl.value : '';
     if ((sGrade === "Form 4" || sGrade === "Form 5") && format === "Regular") {
         if (pkgVal === "PakejA_Plus" && checkedSubjs.length < 6) {
-            alert('Untuk pilihan "Pakej A + Tambahan Subjek", sila tanda sekurang-kurangnya 1 subjek tambahan (jumlah sekurang-kurangnya 6 subjek).');
+            showFieldErrorAndScroll('subjectListContainer_' + index, 'Untuk pilihan "Pakej A + Tambahan Subjek", sila tanda sekurang-kurangnya 1 subjek tambahan (jumlah sekurang-kurangnya 6 subjek).', null);
             return;
         }
         if (pkgVal === "PakejB_Plus" && checkedSubjs.length < 6) {
-            alert('Untuk pilihan "Pakej B + Tambahan Subjek", sila tanda sekurang-kurangnya 1 subjek tambahan (jumlah sekurang-kurangnya 6 subjek).');
+            showFieldErrorAndScroll('subjectListContainer_' + index, 'Untuk pilihan "Pakej B + Tambahan Subjek", sila tanda sekurang-kurangnya 1 subjek tambahan (jumlah sekurang-kurangnya 6 subjek).', null);
             return;
         }
     }
+
+    document.querySelectorAll('.field-error').forEach(function(el) {
+        el.classList.remove('field-error');
+    });
 
     childSavedState[index] = true;
 
@@ -743,15 +1053,21 @@ function saveChildCard(index) {
     var healthText = getHealthOrSpecialValue(index, 'health');
     var specialText = getHealthOrSpecialValue(index, 'special');
 
+    var fileICInput = document.getElementById('fileIC_' + index);
+    var fileResultInput = document.getElementById('fileResult_' + index);
+    var icDocName = (fileICInput && fileICInput.files[0]) ? fileICInput.files[0].name : "Tiada";
+    var resDocName = (fileResultInput && fileResultInput.files[0]) ? fileResultInput.files[0].name : "Tiada";
+
     var summaryBox = document.getElementById('savedSummary_' + index);
     summaryBox.innerHTML = `
         <div>✅ <strong>Maklumat Anak ${ord} Telah Disimpan:</strong></div>
         <div style="margin-top:4px;">
-            • <strong>Nama:</strong> ${sName.toUpperCase()} (${sGender} | ${statusLabel})<br>
-            • <strong>No. MyKad/MyKid:</strong> ${sIC} | <strong>Tarikh Lahir:</strong> ${sBirth}<br>
-            • <strong>Sekolah:</strong> ${sSchool} (Kelas: ${sClassName}) | <strong>Tingkatan/Tahun:</strong> ${formatGradeDisplayLabel(sGrade)} (${branch})${streamInfo}<br>
-            • <strong>Kesihatan/Alahan:</strong> ${healthText} | <strong>Keperluan Khas:</strong> ${specialText}<br>
-            • <strong>Subjek (${checkedSubjs.length}):</strong> ${checkedSubjs.join(', ')}
+- <strong>Nama:</strong> ${sName.toUpperCase()} (${sGender} | ${statusLabel})<br>
+- <strong>No. MyKad/MyKid:</strong> ${sIC} | <strong>Tarikh Lahir:</strong> ${sBirth}<br>
+- <strong>Sekolah:</strong> ${sSchool} (Kelas: ${sClassName}) | <strong>Tingkatan/Tahun:</strong> ${formatGradeDisplayLabel(sGrade)} (${branch})${streamInfo}<br>
+- <strong>Kesihatan/Alahan:</strong> ${healthText} | <strong>Keperluan Khas:</strong> ${specialText}<br>
+- <strong>Subjek (${checkedSubjs.length}):</strong> ${checkedSubjs.join(', ')}<br>
+- <strong>Dokumen Dilampirkan:</strong> IC (${icDocName}) | Keputusan (${resDocName})
         </div>
     `;
     summaryBox.style.display = 'block';
@@ -762,6 +1078,7 @@ function saveChildCard(index) {
 
     updateAddNextBoxVisibility();
     calculateTotalFees();
+    saveDraftToLocalStorage();
 }
 
 function editChildCard(index) {
@@ -775,6 +1092,7 @@ function editChildCard(index) {
     document.getElementById('btnEditChild_' + index).style.display = 'none';
 
     updateAddNextBoxVisibility();
+    saveDraftToLocalStorage();
 }
 
 function removeLastChild(index) {
@@ -785,10 +1103,12 @@ function removeLastChild(index) {
     delete verifiedOldStudent[index];
     delete unverifiedOldClaim[index];
     delete childSavedState[index];
+    delete childTotalsByIndex[index];
     activeChildCount--;
 
     updateAddNextBoxVisibility();
     calculateTotalFees();
+    saveDraftToLocalStorage();
 }
 
 function updateAddNextBoxVisibility() {
@@ -825,6 +1145,7 @@ function toggleChildStatus(index, type) {
         document.getElementById('unverifiedNotice_' + index).style.display = 'none';
     }
     calculateTotalFees();
+    saveDraftToLocalStorage();
 }
 
 function onICInputForChild(index) {
@@ -865,7 +1186,10 @@ function normalizeDisplayPhone(raw) {
 
 function checkICForChild(index) {
     var ic = document.getElementById('icNumber_' + index).value.trim();
-    if (!ic) { alert('Sila masukkan No. MyKad / MyKid.'); return; }
+    if (!ic) {
+        showFieldErrorAndScroll('icNumber_' + index, 'Sila masukkan No. MyKad / MyKid terlebih dahulu sebelum menyemak.', null);
+        return;
+    }
     
     var btn = document.getElementById('btnCheckIC_' + index);
     btn.innerText = 'Menyemak...';
@@ -901,6 +1225,7 @@ function checkICForChild(index) {
             document.getElementById('unverifiedNotice_' + index).style.display = 'block';
         }
         calculateTotalFees();
+        saveDraftToLocalStorage();
     })
     .catch(err => {
         btn.innerText = 'Semak';
@@ -910,6 +1235,7 @@ function checkICForChild(index) {
         document.getElementById('verifiedBadge_' + index).style.display = 'none';
         document.getElementById('unverifiedNotice_' + index).style.display = 'block';
         calculateTotalFees();
+        saveDraftToLocalStorage();
     });
 }
 
@@ -971,7 +1297,7 @@ function loadSubjectsForChild(index) {
 
     list.forEach(function(subjek) {
         var label = document.createElement('label');
-        label.innerHTML = '<input type="checkbox" class="subj-item-' + index + '" value="' + subjek + '" onchange="calculateTotalFees()"> ' + subjek;
+        label.innerHTML = '<input type="checkbox" class="subj-item-' + index + '" value="' + subjek + '" onchange="calculateTotalFees(); saveDraftToLocalStorage();"> ' + subjek;
         container.appendChild(label);
     });
 
@@ -1027,6 +1353,7 @@ function handleChildPackageChange(index) {
         }
     });
     calculateTotalFees();
+    saveDraftToLocalStorage();
 }
 
 function computeMonthlyFee(grade, format, pkgVal, selectedSubjectNames) {
@@ -1089,13 +1416,18 @@ function calculateTotalFees() {
         var studentName = nameInput ? (nameInput.value.trim() ? nameInput.value.trim().toUpperCase() : "ANAK " + ord.toUpperCase()) : ("ANAK " + ord.toUpperCase());
         var gradeSelect = document.getElementById('grade2027_' + i);
         var grade = gradeSelect ? gradeSelect.value : "";
+        var branchSelect = document.getElementById('branchSelect_' + i);
+        var branch = branchSelect ? branchSelect.value : "Pengkalan";
         var checkedCheckboxes = Array.from(document.querySelectorAll('.subj-item-' + i + ':checked'));
         var selectedNames = checkedCheckboxes.map(cb => cb.value);
         
         var isVerifiedLama = verifiedOldStudent[i] === true;
         var isUnverifiedClaim = unverifiedOldClaim[i] === true;
 
-        if (!grade || selectedNames.length === 0) continue;
+        if (!grade || selectedNames.length === 0) {
+            childTotalsByIndex[i] = 0;
+            continue;
+        }
 
         var regFee = isVerifiedLama ? 0 : 25;
         var formatSelect = document.getElementById('classFormat_' + i);
@@ -1116,13 +1448,14 @@ function calculateTotalFees() {
         });
 
         var childTotal = regFee + materialFeeTotal + monthlyFee;
+        childTotalsByIndex[i] = childTotal;
         grandTotalInitial += childTotal;
 
         var regNote = "";
         if (isVerifiedLama) regNote = " (Pelajar Lama Disahkan)";
         else if (isUnverifiedClaim) regNote = " (Tertakluk Semakan Admin)";
 
-        summaryText += "👤 " + studentName + " (" + grade + " - " + selectedNames.length + " Subjek)\n";
+        summaryText += "👤 " + studentName + " (" + grade + " - " + branch + " - " + selectedNames.length + " Subjek)\n";
         summaryText += "   • Yuran Pendaftaran = RM " + regFee + regNote + "\n";
         summaryText += "   • Yuran Bahan = RM " + materialFeeTotal + "\n";
         summaryText += "   • Yuran Bulan Pertama = RM " + monthlyFee + "\n";
@@ -1140,50 +1473,190 @@ function calculateTotalFees() {
     }
 }
 
-document.getElementById('pttdForm').addEventListener('submit', function(e) {
-    e.preventDefault();
-    
-    var fVal = document.getElementById('fatherPhone').value.trim();
-    var mVal = document.getElementById('motherPhone').value.trim();
+function getFormattedSubmissionTimestamp() {
+    var now = new Date();
+    var pad = function(n) { return n < 10 ? '0' + n : n; };
+    return pad(now.getDate()) + "/" + pad(now.getMonth() + 1) + "/" + now.getFullYear() + " " +
+           pad(now.getHours()) + ":" + pad(now.getMinutes()) + ":" + pad(now.getSeconds());
+}
 
-    var fValid = isValidLocalPhone(fVal);
-    var mValid = isValidLocalPhone(mVal);
+function validateAllFieldsBeforeSubmit() {
+    var seenICs = {};
 
-    if (!fValid && !mValid) {
-        alert('Sila masukkan sekurang-kurangnya SATU nombor telefon yang sah (bermula dengan 01, contoh: 0123456789) pada ruangan Ayah atau Ibu/Penjaga.');
-        return;
-    }
-    if (fVal !== '-' && !fValid) {
-        alert('Format No. Telefon Ayah tidak sah. Sila masukkan nombor bermula dengan 01 (tanpa +60) atau letakkan tanda - jika tiada.');
-        return;
-    }
-    if (mVal !== '-' && !mValid) {
-        alert('Format No. Telefon Ibu tidak sah. Sila masukkan nombor bermula dengan 01 (tanpa +60) atau letakkan tanda - jika tiada.');
-        return;
-    }
+    for (var i = 1; i <= activeChildCount; i++) {
+        var ord = getOrdinal(i);
+        var icRaw = document.getElementById('icNumber_' + i).value.trim();
 
-    for (var k = 1; k <= activeChildCount; k++) {
-        if (!childSavedState[k]) {
-            alert('Sila tekan butang "💾 Simpan Maklumat Anak ' + getOrdinal(k) + '" terlebih dahulu sebelum menghantar borang.');
-            document.getElementById('childCard_' + k).scrollIntoView({ behavior: 'smooth', block: 'start' });
-            return;
+        if (icRaw && seenICs[icRaw]) {
+            showFieldErrorAndScroll('icNumber_' + i, 'No. MyKad / MyKid (' + icRaw + ') pada Anak ' + ord + ' adalah sama dengan Anak ' + getOrdinal(seenICs[icRaw]) + '. Sila semak semula.', i);
+            return false;
+        }
+        if (icRaw) {
+            seenICs[icRaw] = i;
+        }
+
+        var checks = [
+            { id: 'studentName_' + i, val: document.getElementById('studentName_' + i).value.trim(), msg: 'Sila masukkan Nama Penuh Pelajar untuk Anak ' + ord + '.' },
+            { id: 'icNumber_' + i, val: icRaw, minLen: 6, msg: 'Sila masukkan No. MyKad / MyKid Pelajar yang sah untuk Anak ' + ord + '.' },
+            { id: 'gender_' + i, val: document.getElementById('gender_' + i).value, msg: 'Sila pilih Jantina untuk Anak ' + ord + '.' },
+            { id: 'birthDate_' + i, val: document.getElementById('birthDate_' + i).value, msg: 'Sila pilih Tarikh Lahir untuk Anak ' + ord + '.' },
+            { id: 'startDate_' + i, val: document.getElementById('startDate_' + i).value, msg: 'Sila pilih Tarikh Mula Kelas untuk Anak ' + ord + '.' },
+            { id: 'race_' + i, val: document.getElementById('race_' + i).value, msg: 'Sila pilih Bangsa untuk Anak ' + ord + '.' },
+            { id: 'religion_' + i, val: document.getElementById('religion_' + i).value, msg: 'Sila pilih Agama untuk Anak ' + ord + '.' },
+            { id: 'grade2027_' + i, val: document.getElementById('grade2027_' + i).value, msg: 'Sila pilih Tahun / Tingkatan (Sesi 2027) untuk Anak ' + ord + '.' },
+            { id: 'schoolName_' + i, val: document.getElementById('schoolName_' + i).value.trim(), msg: 'Sila masukkan Nama Sekolah untuk Anak ' + ord + '.' },
+            { id: 'schoolClassName_' + i, val: document.getElementById('schoolClassName_' + i).value.trim(), msg: 'Sila masukkan Kelas di Sekolah untuk Anak ' + ord + '.' }
+        ];
+
+        for (var c = 0; c < checks.length; c++) {
+            var item = checks[c];
+            if (!item.val || (item.minLen && item.val.length < item.minLen)) {
+                showFieldErrorAndScroll(item.id, item.msg, i);
+                return false;
+            }
+        }
+
+        if (document.getElementById('race_' + i).value === 'Lain-lain' && !document.getElementById('raceOther_' + i).value.trim()) {
+            showFieldErrorAndScroll('raceOther_' + i, 'Sila nyatakan Bangsa pada ruangan disediakan untuk Anak ' + ord + '.', i);
+            return false;
+        }
+        if (document.getElementById('religion_' + i).value === 'Lain-lain' && !document.getElementById('religionOther_' + i).value.trim()) {
+            showFieldErrorAndScroll('religionOther_' + i, 'Sila nyatakan Agama pada ruangan disediakan untuk Anak ' + ord + '.', i);
+            return false;
+        }
+
+        var gVal = document.getElementById('grade2027_' + i).value;
+        if (gVal === 'Form 4' || gVal === 'Form 5') {
+            var stVal = document.getElementById('schoolStream_' + i).value;
+            if (!stVal) {
+                showFieldErrorAndScroll('schoolStream_' + i, 'Sila pilih Aliran Kelas di Sekolah untuk Anak ' + ord + '.', i);
+                return false;
+            }
+            if (stVal === 'Lain-lain' && !document.getElementById('schoolStreamOther_' + i).value.trim()) {
+                showFieldErrorAndScroll('schoolStreamOther_' + i, 'Sila nyatakan Aliran Kelas di Sekolah untuk Anak ' + ord + '.', i);
+                return false;
+            }
+        }
+
+        var checkedSubjs = Array.from(document.querySelectorAll('.subj-item-' + i + ':checked'));
+        if (checkedSubjs.length === 0) {
+            showFieldErrorAndScroll('subjectListContainer_' + i, 'Sila pilih sekurang-kurangnya SATU subjek untuk Anak ' + ord + '.', i);
+            return false;
+        }
+
+        if (!childSavedState[i]) {
+            showFieldErrorAndScroll('childCard_' + i, 'Sila tekan butang "💾 Simpan Maklumat Anak ' + ord + '" terlebih dahulu sebelum menghantar borang.', null);
+            return false;
         }
     }
 
+    if (!document.getElementById('guardianName').value.trim()) {
+        showFieldErrorAndScroll('guardianName', 'Sila masukkan Nama Ibu / Bapa / Penjaga.', null);
+        return false;
+    }
+    if (!document.getElementById('homeAddress').value.trim()) {
+        showFieldErrorAndScroll('homeAddress', 'Sila masukkan Alamat Rumah Lengkap.', null);
+        return false;
+    }
+
+    var fVal = document.getElementById('fatherPhone').value.trim();
+    var mVal = document.getElementById('motherPhone').value.trim();
+    var fValid = isValidLocalPhone(fVal);
+    var mValid = isValidLocalPhone(mVal);
+
+    if (!fVal) {
+        showFieldErrorAndScroll('fatherPhone', 'Sila masukkan No. Telefon Ayah / Penjaga 1 (atau letak tanda - jika tiada).', null);
+        return false;
+    }
+    if (!mVal) {
+        showFieldErrorAndScroll('motherPhone', 'Sila masukkan No. Telefon Ibu / Penjaga 2 (atau letak tanda - jika tiada).', null);
+        return false;
+    }
+    if (!fValid && !mValid) {
+        showFieldErrorAndScroll('fatherPhone', 'Sila masukkan sekurang-kurangnya SATU nombor telefon yang sah (bermula dengan 01, contoh: 0123456789) pada ruangan Ayah atau Ibu/Penjaga.', null);
+        return false;
+    }
+    if (fVal !== '-' && !fValid) {
+        showFieldErrorAndScroll('fatherPhone', 'Format No. Telefon Ayah tidak sah. Masukkan nombor bermula dengan 01 (tanpa +60) atau letakkan tanda - jika tiada.', null);
+        return false;
+    }
+    if (mVal !== '-' && !mValid) {
+        showFieldErrorAndScroll('motherPhone', 'Format No. Telefon Ibu tidak sah. Masukkan nombor bermula dengan 01 (tanpa +60) atau letakkan tanda - jika tiada.', null);
+        return false;
+    }
+
+    if (!document.getElementById('chkAgree1').checked) {
+        showFieldErrorAndScroll('boxAgree1', 'Sila tandakan kotak pengesahan bahawa anda telah membaca Terma & Syarat PTTD.', null);
+        return false;
+    }
+    if (!document.getElementById('chkAgree2').checked) {
+        showFieldErrorAndScroll('boxAgree1', 'Sila tandakan kotak persetujuan mematuhi peraturan dan polisi pusat tuisyen.', null);
+        return false;
+    }
     if (!document.getElementById('chkPdpa').checked) {
-        alert('Sila tandakan kotak persetujuan Perakuan Perlindungan Data Peribadi (PDPA) sebelum menghantar pendaftaran.');
-        document.getElementById('chkPdpa').focus();
+        showFieldErrorAndScroll('boxPdpa', 'Sila tandakan kotak persetujuan Perakuan Perlindungan Data Peribadi (PDPA) sebelum menghantar pendaftaran.', null);
+        return false;
+    }
+
+    return true;
+}
+
+async function checkDuplicateICInDatabase() {
+    for (var i = 1; i <= activeChildCount; i++) {
+        var icVal = document.getElementById('icNumber_' + i).value.trim();
+        var ord = getOrdinal(i);
+        try {
+            var res = await fetch(scriptURL + '?checkDuplicateIC=' + encodeURIComponent(icVal));
+            var json = await res.json();
+            if (json && json.duplicate) {
+                var namaRekod = json.studentName ? (' (' + json.studentName.toUpperCase() + ')') : '';
+                showFieldErrorAndScroll(
+                    'icNumber_' + i,
+                    'No. MyKad / MyKid ' + icVal + namaRekod + ' untuk Anak ' + ord + ' telah pun didaftarkan dalam sistem Sesi 2027 sebelum ini.\n\nSekiranya anda ingin menambah subjek atau mengemas kini maklumat pendaftaran sedia ada, sila hubungi terus WhatsApp Pejabat PTTD.',
+                    i
+                );
+                return true;
+            }
+        } catch (err) {}
+    }
+    return false;
+}
+
+document.getElementById('pttdForm').addEventListener('submit', async function(e) {
+    e.preventDefault();
+    
+    if (!validateAllFieldsBeforeSubmit()) {
         return;
     }
 
     var btnSubmit = document.querySelector('.btn-submit');
-    btnSubmit.innerText = 'Sedang Mengirim Pendaftaran ' + activeChildCount + ' Orang Anak...';
+    btnSubmit.innerText = 'Sedang Menyemak Rekod Pendaftaran...';
     btnSubmit.disabled = true;
+
+    var hasDuplicateInSheets = await checkDuplicateICInDatabase();
+    if (hasDuplicateInSheets) {
+        btnSubmit.innerText = 'Hantar Pendaftaran PTTD';
+        btnSubmit.disabled = false;
+        return;
+    }
+
+    btnSubmit.innerText = 'Sedang Memuat Naik Dokumen & Mengirim Pendaftaran...';
+
+    var fVal = document.getElementById('fatherPhone').value.trim();
+    var mVal = document.getElementById('motherPhone').value.trim();
+
+    calculateTotalFees();
 
     var childrenDataArray = [];
     var feeText = document.getElementById('feeBreakdownDisplay').innerText;
     var hasUnverifiedOldStudent = false;
     var studentDetailsReceiptHTML = "";
+    var submissionTimestamp = getFormattedSubmissionTimestamp();
+
+    var guardianNameVal = document.getElementById('guardianName').value.trim();
+    var homeAddressVal = document.getElementById('homeAddress').value.trim();
+    var mediaConsentVal = document.querySelector('input[name="mediaConsent"]:checked').value;
+    var pdpaConsentVal = document.getElementById('chkPdpa').checked ? "SETUJU" : "TIDAK";
     
     for (var i = 1; i <= activeChildCount; i++) {
         var ord = getOrdinal(i);
@@ -1202,20 +1675,37 @@ document.getElementById('pttdForm').addEventListener('submit', function(e) {
 
         var sNameVal = document.getElementById('studentName_' + i).value.trim();
         var sICVal = document.getElementById('icNumber_' + i).value.trim();
+        var sGenderVal = document.getElementById('gender_' + i).value;
+        var sBirthVal = document.getElementById('birthDate_' + i).value;
+        var sStartVal = document.getElementById('startDate_' + i).value;
+        var sSchoolVal = document.getElementById('schoolName_' + i).value.trim();
+        var sSchoolClassVal = document.getElementById('schoolClassName_' + i).value.trim();
+        var sSchoolTypeVal = document.getElementById('schoolClassType_' + i).value;
         var gradeVal = document.getElementById('grade2027_' + i).value;
         var branchVal = document.getElementById('branchSelect_' + i).value;
         var formatVal = document.getElementById('classFormat_' + i).value;
         var streamFinal = (gradeVal === "Form 4" || gradeVal === "Form 5") ? getFieldValueWithOther(i, 'schoolStream') : "";
+        var healthFinal = getHealthOrSpecialValue(i, 'health');
+        var specialFinal = getHealthOrSpecialValue(i, 'special');
+
+        var icFileObj = await readFileAsBase64Obj(document.getElementById('fileIC_' + i));
+        var resultFileObj = await readFileAsBase64Obj(document.getElementById('fileResult_' + i));
+
+        var streamRowHTML = streamFinal ? `<div>• <strong>Aliran Kelas:</strong> ${streamFinal}</div>` : '';
 
         studentDetailsReceiptHTML += `
             <div style="background: white; border: 1px solid #BFDBFE; border-radius: 6px; padding: 12px; margin-bottom: ${i < activeChildCount ? '10px' : '0'}; font-size: 13.5px; line-height: 1.65; color: #1E293B;">
                 <div style="font-weight: bold; color: #1E3A8A; border-bottom: 1px solid #E2E8F0; padding-bottom: 4px; margin-bottom: 6px;">
                     Anak ${ord}: ${sNameVal.toUpperCase()} <span style="font-weight: normal; font-size: 12px; color: #475569;">(${statusBadgeText})</span>
                 </div>
-                <div>• <strong>No. MyKad / MyKid:</strong> ${sICVal}</div>
+                <div>• <strong>No. MyKad / MyKid:</strong> ${sICVal} | <strong>Jantina:</strong> ${sGenderVal}</div>
+                <div>• <strong>Tarikh Lahir:</strong> ${sBirthVal} | <strong>Tarikh Mula Kelas:</strong> ${sStartVal}</div>
+                <div>• <strong>Sekolah:</strong> ${sSchoolVal} (Kelas: ${sSchoolClassVal} - ${sSchoolTypeVal})</div>
+                ${streamRowHTML}
                 <div>• <strong>Tahun / Tingkatan:</strong> ${formatGradeDisplayLabel(gradeVal)} (${formatClassFormatLabel(formatVal)})</div>
                 <div>• <strong>Cawangan:</strong> ${branchVal}</div>
                 <div>• <strong>Subjek Diambil:</strong> ${checkedSubjects}</div>
+                <div>• <strong>Kesihatan/Alahan:</strong> ${healthFinal} | <strong>Keperluan Khas:</strong> ${specialFinal}</div>
             </div>
         `;
         
@@ -1223,20 +1713,20 @@ document.getElementById('pttdForm').addEventListener('submit', function(e) {
             studentStatus: finalStatus,
             studentName: sNameVal,
             icNumber: sICVal,
-            gender: document.getElementById('gender_' + i).value,
-            birthDate: document.getElementById('birthDate_' + i).value,
+            gender: sGenderVal,
+            birthDate: sBirthVal,
             race: getFieldValueWithOther(i, 'race'),
             religion: getFieldValueWithOther(i, 'religion'),
-            startDate: document.getElementById('startDate_' + i).value,
+            startDate: sStartVal,
             grade2027: gradeVal,
-            schoolName: document.getElementById('schoolName_' + i).value,
-            schoolClassName: document.getElementById('schoolClassName_' + i).value,
-            schoolClassType: document.getElementById('schoolClassType_' + i).value,
+            schoolName: sSchoolVal,
+            schoolClassName: sSchoolClassVal,
+            schoolClassType: sSchoolTypeVal,
             schoolStream: streamFinal,
-            healthAllergies: getHealthOrSpecialValue(i, 'health'),
-            specialLearning: getHealthOrSpecialValue(i, 'special'),
-            guardianName: document.getElementById('guardianName').value,
-            homeAddress: document.getElementById('homeAddress').value,
+            healthAllergies: healthFinal,
+            specialLearning: specialFinal,
+            guardianName: guardianNameVal,
+            homeAddress: homeAddressVal,
             fatherPhone: fVal,
             motherPhone: mVal,
             studentPhone: document.getElementById('studentPhone_' + i).value,
@@ -1244,68 +1734,98 @@ document.getElementById('pttdForm').addEventListener('submit', function(e) {
             branchSelect: branchVal,
             classFormat: formatVal,
             selectedSubjects: checkedSubjects,
-            mediaConsent: document.querySelector('input[name="mediaConsent"]:checked').value,
-            pdpaConsent: document.getElementById('chkPdpa').checked ? "SETUJU" : "TIDAK"
+            mediaConsent: mediaConsentVal,
+            pdpaConsent: pdpaConsentVal,
+            icFile: icFileObj,
+            resultFile: resultFileObj
         });
     }
+
+    var unverifiedAdminWarningHTML = hasUnverifiedOldStudent ? `
+        <div style="background: #FEF2F2; border: 2px solid #F87171; border-radius: 8px; padding: 14px 16px; margin-top: 15px; font-size: 13.5px; line-height: 1.6; color: #991B1B;">
+            <strong>⚠️ PERHATIAN PENTING (SEMAKAN REKOD PELAJAR LAMA):</strong><br>
+            Oleh kerana No. MyKad/MyKid anak anda tidak ditemui dalam rekod sistem semasa pendaftaran, sistem telah mengira caj <strong>Yuran Pendaftaran (RM 25)</strong> secara sementara.<br><br>
+            👉 <strong>Pihak Pejabat PTTD akan menyemak status pelajar lama terlebih dahulu</strong> sebelum menghantar pautan/maklumat pembayaran rasmi kepada anda bagi pengecualian (<em>waive</em>) caj RM 25 tersebut.
+        </div>
+    ` : '';
+
+    var exactConfirmationHTML = `
+        <div style="font-family: system-ui, -apple-system, sans-serif; color: #1E293B;">
+            <div style="text-align: center; border-bottom: 2px solid #1E3A8A; padding-bottom: 15px; margin-bottom: 18px;">
+                <img src="https://lh3.googleusercontent.com/d/1WlMIwoIseQSpgEN7-CjLmnIOInagk1o2" style="max-width: 170px; height: auto;" alt="Logo PTTD">
+                <h2 style="color: #1E3A8A; margin: 10px 0 2px 0; font-size: 20px;">PUSAT TUISYEN TERAJU DIDIK</h2>
+                <p style="margin: 2px 0; font-size: 12px; color: #4B5563;">"IT ONLY TAKES THAT SMALL STEP TO START"</p>
+                <h3 style="background: #1E3A8A; color: white; display: inline-block; padding: 5px 15px; border-radius: 4px; margin-top: 10px; font-size: 15px;">
+                    Pengesahan Pendaftaran Sesi 2027 (${activeChildCount} Orang Pelajar)
+                </h3>
+                <div style="font-size: 12px; color: #64748B; margin-top: 6px;">
+                    Tarikh & Masa Pendaftaran: <strong>${submissionTimestamp}</strong>
+                </div>
+            </div>
+
+            <div style="background: #F8FAFC; border: 1px solid #CBD5E1; border-radius: 8px; padding: 14px; margin-bottom: 15px; font-size: 13.5px; line-height: 1.65;">
+                <h4 style="margin: 0 0 8px 0; color: #1E3A8A;">👨‍👩‍👧‍👦 Maklumat Ibu / Bapa / Penjaga</h4>
+                <div>• <strong>Nama Penjaga:</strong> ${guardianNameVal.toUpperCase()}</div>
+                <div>• <strong>No. Tel Ayah / Ibu:</strong> ${fVal} / ${mVal}</div>
+                <div>• <strong>Alamat Kediaman:</strong> ${homeAddressVal}</div>
+                <div>• <strong>Kebenaran Gambar Media Sosial:</strong> ${mediaConsentVal === 'BENAR' ? 'Dibenarkan' : 'Tidak Dibenarkan'} | <strong>Perakuan PDPA:</strong> ${pdpaConsentVal}</div>
+            </div>
+
+            <div style="background: #F8FAFC; border: 1px solid #CBD5E1; border-radius: 8px; padding: 14px; margin-top: 15px;">
+                <h4 style="margin: 0 0 10px 0; color: #1E3A8A;">📋 Butiran Pendaftaran Pelajar</h4>
+                ${studentDetailsReceiptHTML}
+            </div>
+
+            <div style="background: #FFFBEB; border: 2px dashed #F59E0B; border-radius: 8px; padding: 14px; margin-top: 15px;">
+                <h4 style="margin: 0 0 8px 0; color: #B45309;">💰 Rincian Yuran Permulaan</h4>
+                <div style="background: white; border: 1px solid #FCD34D; border-radius: 6px; padding: 12px; font-family: system-ui, -apple-system, sans-serif; font-size: 13.5px; line-height: 1.7; white-space: pre-line;">${feeText}</div>
+            </div>
+
+            ${unverifiedAdminWarningHTML}
+
+            <div style="background: #EFF6FF; border: 1px solid #BFDBFE; border-radius: 8px; padding: 14px; margin-top: 15px; font-size: 13.5px; line-height: 1.6; color: #1E3A8A;">
+                <strong>📌 Langkah Seterusnya (Pembayaran Yuran):</strong><br>
+                Pendaftaran anda telah berjaya direkodkan. Pihak pejabat <strong>Pusat Tuisyen Teraju Didik</strong> akan menghubungi anda melalui <strong>WhatsApp</strong> dalam masa terdekat untuk pengesahan jadual kelas serta maklumat rasmi pembayaran yuran. Sila simpan salinan pengesahan ini sebagai rujukan.
+            </div>
+        </div>
+    `;
+
+    // Bina pautan WhatsApp Pejabat mengikut Cawangan Anak Pertama
+    var firstChildBranch = childrenDataArray[0].branchSelect || "Pengkalan";
+    var targetWaPhone = WHATSAPP_NUMBERS[firstChildBranch] || WHATSAPP_NUMBERS["Pengkalan"];
+    var studentNamesList = childrenDataArray.map(function(c, idx) {
+        return (idx + 1) + ". " + c.studentName.toUpperCase() + " (" + c.grade2027 + " - " + c.branchSelect + ")";
+    }).join("\n");
+
+    var waMessage = "Assalamualaikum / Salam Sejahtera Admin PTTD (" + firstChildBranch + "),\n\n" +
+                    "Saya telah melengkapkan borang pendaftaran Sesi 2027 secara dalam talian:\n\n" +
+                    "*Nama Penjaga:* " + guardianNameVal.toUpperCase() + "\n" +
+                    "*Senarai Pelajar:*\n" + studentNamesList + "\n\n" +
+                    "Mohon pengesahan jadual kelas dan maklumat pembayaran yuran. Terima kasih.";
+
+    var waLink = "https://wa.me/" + targetWaPhone + "?text=" + encodeURIComponent(waMessage);
 
     fetch(scriptURL, {
         method: 'POST',
         body: JSON.stringify({ 
             multipleStudents: childrenDataArray,
             fullFeeTextSummary: feeText,
-            hasUnverifiedOldStudent: hasUnverifiedOldStudent
+            hasUnverifiedOldStudent: hasUnverifiedOldStudent,
+            exactConfirmationHTML: exactConfirmationHTML,
+            submissionTimestamp: submissionTimestamp
         })
     })
     .then(response => {
+        localStorage.removeItem(DRAFT_STORAGE_KEY);
+
         var container = document.getElementById('mainContainer');
-        var firstBranch = childrenDataArray[0].branchSelect;
-        
-        var bankInfo = (firstBranch === "Pasir Puteh") ? 
-            "BANK ISLAM<br><strong>080 130 10 082 197</strong><br>PUSAT TUISYEN TERAJU DIDIK" : 
-            "CIMB BANK<br><strong>860 3160 938</strong><br>PUSAT TUISYEN TERAJU DIDIK";
-            
-        var qrImageHTML = (firstBranch === "Pasir Puteh") ? 
-            `<img src="https://lh3.googleusercontent.com/d/1-6rT6ffmVbbEYavqMGFIO0dqVbx5VlG7" style="max-width:160px;border-radius:6px;margin-top:8px;" alt="QR Pasir Puteh">` : 
-            `<img src="https://lh3.googleusercontent.com/d/1u2kddB3qKviThLXRUmuXqt_RIQCNq4Wg" style="max-width:160px;border-radius:6px;margin-top:8px;" alt="QR Pengkalan">`;
-
-        var unverifiedAdminWarningHTML = hasUnverifiedOldStudent ? `
-            <div style="background: #FEF2F2; border: 2px solid #F87171; border-radius: 8px; padding: 14px 16px; margin-top: 15px; font-size: 13.5px; line-height: 1.6; color: #991B1B;">
-                <strong>⚠️ PERHATIAN PENTING (SEMAKAN REKOD PELAJAR LAMA):</strong><br>
-                Oleh kerana No. MyKad/MyKid anak anda tidak ditemui dalam rekod sistem semasa pendaftaran, sistem telah mengira caj <strong>Yuran Pendaftaran (RM 25)</strong> secara sementara.<br><br>
-                👉 <strong>Sila hubungi / WhatsApp pihak Pejabat PTTD terlebih dahulu sebelum membuat pembayaran melalui QR di bawah</strong> untuk mengesahkan bahawa anak anda pernah mengikuti tuisyen di PTTD. Pihak pejabat akan mengecualikan (<em>waive</em>) caj RM 25 tersebut selepas pengesahan dibuat.
-            </div>
-        ` : '';
-
         container.innerHTML = `
-            <div style="text-align: center; border-bottom: 2px solid #1E3A8A; padding-bottom: 15px; margin-bottom: 20px;">
-                <img src="https://lh3.googleusercontent.com/d/1WlMIwoIseQSpgEN7-CjLmnIOInagk1o2" style="max-width: 180px; height: auto;" alt="Logo PTTD">
-                <h2 style="color: #1E3A8A; margin: 10px 0 2px 0;">PUSAT TUISYEN TERAJU DIDIK</h2>
-                <h3 style="background: #1E3A8A; color: white; display: inline-block; padding: 4px 15px; border-radius: 4px; margin-top: 12px; font-size: 16px;">Pengesahan Pendaftaran (${activeChildCount} Orang Pelajar)</h3>
-            </div>
-
-            <div style="background: #F8FAFC; border: 1px solid #CBD5E1; border-radius: 8px; padding: 15px; margin-top: 15px;">
-                <h4 style="margin: 0 0 10px 0; color: #1E3A8A;">📋 Butiran Pendaftaran Pelajar</h4>
-                ${studentDetailsReceiptHTML}
-            </div>
-
-            <div style="background: #FFFBEB; border: 1px dashed #F59E0B; border-radius: 8px; padding: 15px; margin-top: 15px;">
-                <h4 style="margin: 0 0 8px 0; color: #B45309;">💰 Rincian Yuran Permulaan</h4>
-                <div style="background: white; border: 1px solid #FCD34D; border-radius: 6px; padding: 10px; font-family: system-ui, -apple-system, sans-serif; font-size: 13.5px; line-height: 1.7; white-space: pre-line;">
-                    ${feeText}
-                </div>
-            </div>
-
-            ${unverifiedAdminWarningHTML}
-
-            <div style="background: #EFF6FF; border: 1px solid #BFDBFE; border-radius: 8px; padding: 15px; margin-top: 15px; text-align: center;">
-                <h4 style="margin: 0 0 6px 0; color: #1E3A8A;">🏦 Maklumat Pembayaran PTTD</h4>
-                <div style="font-size: 14px; color: #1E293B; margin-bottom: 8px;">${bankInfo}</div>
-                <div>${qrImageHTML}</div>
-            </div>
-
-            <div style="margin-top: 25px; text-align: center;">
-                <button onclick="window.print()" style="background: #1E3A8A; color: white; border: none; padding: 12px 20px; font-weight: bold; border-radius: 6px; cursor: pointer; width: 100%; max-width: 320px;">
+            ${exactConfirmationHTML}
+            <div style="margin-top: 25px; display: flex; flex-direction: column; align-items: center; gap: 12px;">
+                <a href="${waLink}" target="_blank" rel="noopener noreferrer" style="background: #16A34A; color: white; text-decoration: none; padding: 13px 20px; font-weight: bold; border-radius: 6px; width: 100%; max-width: 340px; text-align: center; box-sizing: border-box; font-size: 15px;">
+                    💬 WhatsApp Pejabat PTTD (${firstChildBranch})
+                </a>
+                <button onclick="window.print()" style="background: #1E3A8A; color: white; border: none; padding: 12px 20px; font-weight: bold; border-radius: 6px; cursor: pointer; width: 100%; max-width: 340px; font-size: 14.5px;">
                     🖨️ Cetak / Simpan PDF Pengesahan
                 </button>
             </div>
@@ -1319,8 +1839,10 @@ document.getElementById('pttdForm').addEventListener('submit', function(e) {
     });
 });
 
-// Mulakan dengan Anak Pertama
-addNextChild();
+// Pulihkan draf jika ada; jika tiada, mulakan dengan Anak Pertama
+if (!restoreDraftFromLocalStorage()) {
+    addNextChild(true);
+}
 </script>
 
 </body>
