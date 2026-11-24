@@ -2,7 +2,7 @@
 <html lang="ms">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Pendaftaran Pusat Tuisyen Teraju Didik (PTTD)</title>
     <style>
         :root { --primary: #1E3A8A; --secondary: #D97706; --bg: #F3F4F6; }
@@ -71,7 +71,8 @@
         @media (max-width: 600px) { .form-group.full { grid-column: span 1; } }
         
         label { font-size: 13px; font-weight: 600; margin-bottom: 4px; color: #374151; }
-        input, select, textarea { padding: 9px 11px; border: 1px solid #D1D5DB; border-radius: 6px; font-size: 14px; outline: none; }
+        input, select, textarea { padding: 9px 11px; border: 1px solid #D1D5DB; border-radius: 6px; font-size: 16px; outline: none; width: 100%; box-sizing: border-box; }
+        input[type="checkbox"], input[type="radio"] { width: auto; }
         input:focus, select:focus, textarea:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(30,58,138,0.1); }
         
         .student-type { display: flex; gap: 10px; margin-bottom: 15px; }
@@ -95,7 +96,7 @@
         .btn-add-next:hover { background: #1E40AF; }
 
         .ic-search-box { display: flex; gap: 8px; }
-        .btn-search { background: var(--secondary); color: white; border: none; padding: 0 15px; border-radius: 6px; font-weight: bold; cursor: pointer; white-space: nowrap; }
+        .btn-search { background: var(--secondary); color: white; border: none; padding: 0 15px; border-radius: 6px; font-weight: bold; cursor: pointer; white-space: nowrap; font-size: 14px; }
         .age-badge { background: #FEF3C7; color: #92400E; padding: 4px 8px; border-radius: 4px; font-weight: bold; display: inline-block; margin-top: 5px; font-size: 12px; width: fit-content; }
         .verified-badge { background: #D1FAE5; color: #065F46; border: 1px solid #10B981; padding: 6px 10px; border-radius: 6px; font-weight: bold; display: none; margin-top: 6px; font-size: 12px; }
         .unverified-notice { background: #FEF2F2; color: #991B1B; border: 1px solid #FCA5A5; padding: 8px 10px; border-radius: 6px; display: none; margin-top: 6px; font-size: 12px; line-height: 1.5; }
@@ -374,6 +375,7 @@ var verifiedOldStudent = {};
 var unverifiedOldClaim = {};
 var childSavedState = {};
 var childTotalsByIndex = {};
+var autoCheckedICMap = {};
 
 function getOrdinal(index) {
     return ordinalWords[index - 1] || ("Ke-" + index);
@@ -763,6 +765,9 @@ function restoreDraftFromLocalStorage() {
 
             document.getElementById('studentName_' + i).value = cData.studentName || '';
             document.getElementById('icNumber_' + i).value = cData.icNumber || '';
+            if (cData.icNumber && cData.icNumber.replace(/[^0-9]/g, '').length === 12) {
+                autoCheckedICMap[i] = cData.icNumber.replace(/[^0-9]/g, '');
+            }
             onICInputForChild(i);
 
             document.getElementById('gender_' + i).value = cData.gender || '';
@@ -1104,6 +1109,7 @@ function removeLastChild(index) {
     delete unverifiedOldClaim[index];
     delete childSavedState[index];
     delete childTotalsByIndex[index];
+    delete autoCheckedICMap[index];
     activeChildCount--;
 
     updateAddNextBoxVisibility();
@@ -1173,6 +1179,12 @@ function onICInputForChild(index) {
     } else {
         ageDisplay.style.display = 'none';
     }
+
+    // SEMAK AUTOMATIK BILA CUKUP 12 DIGIT (WALAUPUN PILIH PELAJAR BAHARU)
+    if (ic.length === 12 && autoCheckedICMap[index] !== ic) {
+        autoCheckedICMap[index] = ic;
+        checkICForChild(index, true);
+    }
 }
 
 function normalizeDisplayPhone(raw) {
@@ -1184,41 +1196,52 @@ function normalizeDisplayPhone(raw) {
     return digits;
 }
 
-function checkICForChild(index) {
+function checkICForChild(index, isSilentAutoCheck) {
     var ic = document.getElementById('icNumber_' + index).value.trim();
     if (!ic) {
-        showFieldErrorAndScroll('icNumber_' + index, 'Sila masukkan No. MyKad / MyKid terlebih dahulu sebelum menyemak.', null);
+        if (!isSilentAutoCheck) {
+            showFieldErrorAndScroll('icNumber_' + index, 'Sila masukkan No. MyKad / MyKid terlebih dahulu sebelum menyemak.', null);
+        }
         return;
     }
     
     var btn = document.getElementById('btnCheckIC_' + index);
-    btn.innerText = 'Menyemak...';
-    btn.disabled = true;
+    if (btn && !isSilentAutoCheck) {
+        btn.innerText = 'Menyemak...';
+        btn.disabled = true;
+    }
 
     fetch(scriptURL + '?ic=' + encodeURIComponent(ic))
     .then(response => response.json())
     .then(data => {
-        btn.innerText = 'Semak';
-        btn.disabled = false;
+        if (btn) {
+            btn.innerText = 'Semak';
+            btn.disabled = false;
+        }
 
         if (data.found) {
+            if (!document.getElementById('radioLama_' + index).checked) {
+                document.getElementById('radioLama_' + index).checked = true;
+                toggleChildStatus(index, 'LAMA');
+            }
+
             verifiedOldStudent[index] = true;
             unverifiedOldClaim[index] = false;
             document.getElementById('verifiedBadge_' + index).style.display = 'inline-block';
             document.getElementById('unverifiedNotice_' + index).style.display = 'none';
 
-            document.getElementById('studentName_' + index).value = data.studentName || '';
-            document.getElementById('schoolName_' + index).value = data.schoolName || '';
+            if (!document.getElementById('studentName_' + index).value) document.getElementById('studentName_' + index).value = data.studentName || '';
+            if (!document.getElementById('schoolName_' + index).value) document.getElementById('schoolName_' + index).value = data.schoolName || '';
             var stuPhone = normalizeDisplayPhone(data.studentPhone);
-            document.getElementById('studentPhone_' + index).value = (stuPhone === '-') ? '' : stuPhone;
+            if (!document.getElementById('studentPhone_' + index).value) document.getElementById('studentPhone_' + index).value = (stuPhone === '-') ? '' : stuPhone;
 
             if (!document.getElementById('guardianName').value) document.getElementById('guardianName').value = data.guardianName || '';
             if (!document.getElementById('fatherPhone').value && data.fatherPhone) document.getElementById('fatherPhone').value = normalizeDisplayPhone(data.fatherPhone);
             if (!document.getElementById('motherPhone').value && data.motherPhone) document.getElementById('motherPhone').value = normalizeDisplayPhone(data.motherPhone);
             if (!document.getElementById('homeAddress').value) document.getElementById('homeAddress').value = data.homeAddress || '';
 
-            alert('Rekod Pelajar Lama Ditemui! Maklumat diisi automatik dan Yuran Pendaftaran dikecualikan (RM 0).');
-        } else {
+            alert('✅ Rekod Pelajar Lama Ditemui! Status ditukar kepada Pelajar Lama secara automatik, maklumat diisi, dan Yuran Pendaftaran dikecualikan.');
+        } else if (!isSilentAutoCheck) {
             verifiedOldStudent[index] = false;
             unverifiedOldClaim[index] = true;
             document.getElementById('verifiedBadge_' + index).style.display = 'none';
@@ -1228,14 +1251,18 @@ function checkICForChild(index) {
         saveDraftToLocalStorage();
     })
     .catch(err => {
-        btn.innerText = 'Semak';
-        btn.disabled = false;
-        verifiedOldStudent[index] = false;
-        unverifiedOldClaim[index] = true;
-        document.getElementById('verifiedBadge_' + index).style.display = 'none';
-        document.getElementById('unverifiedNotice_' + index).style.display = 'block';
-        calculateTotalFees();
-        saveDraftToLocalStorage();
+        if (btn) {
+            btn.innerText = 'Semak';
+            btn.disabled = false;
+        }
+        if (!isSilentAutoCheck) {
+            verifiedOldStudent[index] = false;
+            unverifiedOldClaim[index] = true;
+            document.getElementById('verifiedBadge_' + index).style.display = 'none';
+            document.getElementById('unverifiedNotice_' + index).style.display = 'block';
+            calculateTotalFees();
+            saveDraftToLocalStorage();
+        }
     });
 }
 
@@ -1394,13 +1421,34 @@ function computeMonthlyFee(grade, format, pkgVal, selectedSubjectNames) {
     }
 
     if (grade === "Form 4" || grade === "Form 5") {
-        if (count === 1) return 60;
-        if (count < 5) return count * 45;
-
         var hasAddMath = selectedSubjectNames.includes("Matematik Tambahan");
-        var base5Fee = hasAddMath ? 220 : 190;
+
+        // 1. Jika hanya 1 subjek diambil
+        if (count === 1) {
+            return hasAddMath ? 80 : 60;
+        }
+
+        // 2. Jika 2 hingga 4 subjek diambil
+        if (count < 5) {
+            if (hasAddMath) {
+                var nonAddMathCount = count - 1;
+                return (nonAddMathCount * 45) + 70;
+            }
+            return count * 45;
+        }
+
+        // 3. Jika 5 subjek diambil
+        if (count === 5) {
+            return hasAddMath ? 220 : 190;
+        }
+
+        // 4. Jika 6 subjek atau lebih diambil (5 subjek asas RM190 + Add Math RM70 = RM260)
         var extraSubjects = count - 5;
-        return base5Fee + (extraSubjects * 45);
+        if (hasAddMath) {
+            var otherExtra = extraSubjects - 1;
+            return 190 + 70 + (otherExtra * 45);
+        }
+        return 190 + (extraSubjects * 45);
     }
 
     return (count === 1) ? 60 : count * 45;
@@ -1408,7 +1456,9 @@ function computeMonthlyFee(grade, format, pkgVal, selectedSubjectNames) {
 
 function calculateTotalFees() {
     var grandTotalInitial = 0;
+    var grandTotalMonthly = 0;
     var summaryText = "";
+    var monthlyListLines = [];
 
     for (var i = 1; i <= activeChildCount; i++) {
         var ord = getOrdinal(i);
@@ -1450,6 +1500,7 @@ function calculateTotalFees() {
         var childTotal = regFee + materialFeeTotal + monthlyFee;
         childTotalsByIndex[i] = childTotal;
         grandTotalInitial += childTotal;
+        grandTotalMonthly += monthlyFee;
 
         var regNote = "";
         if (isVerifiedLama) regNote = " (Pelajar Lama Disahkan)";
@@ -1460,6 +1511,8 @@ function calculateTotalFees() {
         summaryText += "   • Yuran Bahan = RM " + materialFeeTotal + "\n";
         summaryText += "   • Yuran Bulan Pertama = RM " + monthlyFee + "\n";
         summaryText += "   Jumlah Yuran Permulaan Anak " + ord + " = RM " + childTotal + "\n\n";
+
+        monthlyListLines.push("Anak " + ord + " (" + studentName + ") = RM " + monthlyFee);
     }
 
     if (summaryText === "") {
@@ -1468,7 +1521,12 @@ function calculateTotalFees() {
         var finalOutput = summaryText;
         finalOutput += "----------------------------------------\n";
         finalOutput += "JUMLAH YURAN PERMULAAN KESELURUHAN\n";
-        finalOutput += "= RM " + grandTotalInitial;
+        finalOutput += "= RM " + grandTotalInitial + "\n\n";
+        finalOutput += "📅 Yuran mulai bulan kedua & seterusnya:\n";
+        finalOutput += monthlyListLines.join("\n");
+        if (monthlyListLines.length > 1) {
+            finalOutput += "\nJumlah Yuran Bulanan = RM " + grandTotalMonthly;
+        }
         document.getElementById('feeBreakdownDisplay').innerText = finalOutput;
     }
 }
@@ -1777,7 +1835,7 @@ document.getElementById('pttdForm').addEventListener('submit', async function(e)
             </div>
 
             <div style="background: #FFFBEB; border: 2px dashed #F59E0B; border-radius: 8px; padding: 14px; margin-top: 15px;">
-                <h4 style="margin: 0 0 8px 0; color: #B45309;">💰 Rincian Yuran Permulaan</h4>
+                <h4 style="margin: 0 0 8px 0; color: #B45309;">💰 Rincian Yuran Permulaan & Bulanan</h4>
                 <div style="background: white; border: 1px solid #FCD34D; border-radius: 6px; padding: 12px; font-family: system-ui, -apple-system, sans-serif; font-size: 13.5px; line-height: 1.7; white-space: pre-line;">${feeText}</div>
             </div>
 
@@ -1801,6 +1859,7 @@ document.getElementById('pttdForm').addEventListener('submit', async function(e)
                     "Saya telah melengkapkan borang pendaftaran Sesi 2027 secara dalam talian:\n\n" +
                     "*Nama Penjaga:* " + guardianNameVal.toUpperCase() + "\n" +
                     "*Senarai Pelajar:*\n" + studentNamesList + "\n\n" +
+                    "*Ringkasan Yuran:*\n" + feeText + "\n\n" +
                     "Mohon pengesahan jadual kelas dan maklumat pembayaran yuran. Terima kasih.";
 
     var waLink = "https://wa.me/" + targetWaPhone + "?text=" + encodeURIComponent(waMessage);
