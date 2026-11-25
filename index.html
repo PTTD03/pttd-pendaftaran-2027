@@ -105,6 +105,17 @@
         
         .subject-box { background: #F9FAFB; border: 1px solid #E5E7EB; border-radius: 8px; padding: 12px; margin-top: 5px; }
         .subject-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+        .asas-math-notice {
+            background: #EFF6FF;
+            border: 1px solid #93C5FD;
+            color: #1E3A8A;
+            border-radius: 6px;
+            padding: 8px 10px;
+            margin-top: 10px;
+            font-size: 12.5px;
+            line-height: 1.45;
+            display: none;
+        }
         
         .file-upload-box { background: #FAF5FF; border: 1px dashed #A855F7; border-radius: 8px; padding: 15px; margin-top: 15px; }
         .upload-notice { background: #FEF3C7; border: 1px solid #FCD34D; border-radius: 6px; padding: 10px; margin-top: 12px; font-size: 13px; color: #78350F; line-height: 1.5; grid-column: span 2; }
@@ -400,10 +411,10 @@ function isValidLocalPhone(phoneStr) {
 
 var subjectsDataRegular = {
     "Membaca": ["Membaca BM", "Membaca BI"],
-    "Tahun 3": ["Bahasa Inggeris", "Matematik"],
-    "Tahun 4": ["Bahasa Melayu", "Bahasa Inggeris", "Matematik", "Sains", "Sejarah"],
-    "Tahun 5": ["Bahasa Melayu", "Bahasa Inggeris", "Matematik", "Sains", "Sejarah"],
-    "Tahun 6": ["Bahasa Melayu", "Bahasa Inggeris", "Matematik", "Sains", "Sejarah"],
+    "Tahun 3": ["Bahasa Inggeris", "Matematik", "Kelas Asas Matematik"],
+    "Tahun 4": ["Bahasa Melayu", "Bahasa Inggeris", "Matematik", "Sains", "Sejarah", "Kelas Asas Matematik"],
+    "Tahun 5": ["Bahasa Melayu", "Bahasa Inggeris", "Matematik", "Sains", "Sejarah", "Kelas Asas Matematik"],
+    "Tahun 6": ["Bahasa Melayu", "Bahasa Inggeris", "Matematik", "Sains", "Sejarah", "Kelas Asas Matematik"],
     "Form 1": ["Bahasa Melayu", "Bahasa Inggeris", "Matematik", "Sains", "Sejarah"],
     "Form 2": ["Bahasa Melayu", "Bahasa Inggeris", "Matematik", "Sains", "Sejarah", "Geografi"],
     "Form 3": ["Bahasa Melayu", "Bahasa Inggeris", "Matematik", "Sains", "Sejarah", "Geografi"],
@@ -413,10 +424,10 @@ var subjectsDataRegular = {
 
 var subjectsDataFull = {
     "Membaca": ["Membaca BM", "Membaca BI"],
-    "Tahun 3": ["Bahasa Inggeris", "Matematik", "Bahasa Melayu", "Sains", "Sejarah"],
-    "Tahun 4": ["Bahasa Melayu", "Bahasa Inggeris", "Matematik", "Sains", "Sejarah"],
-    "Tahun 5": ["Bahasa Melayu", "Bahasa Inggeris", "Matematik", "Sains", "Sejarah"],
-    "Tahun 6": ["Bahasa Melayu", "Bahasa Inggeris", "Matematik", "Sains", "Sejarah"],
+    "Tahun 3": ["Bahasa Inggeris", "Matematik", "Bahasa Melayu", "Sains", "Sejarah", "Kelas Asas Matematik"],
+    "Tahun 4": ["Bahasa Melayu", "Bahasa Inggeris", "Matematik", "Sains", "Sejarah", "Kelas Asas Matematik"],
+    "Tahun 5": ["Bahasa Melayu", "Bahasa Inggeris", "Matematik", "Sains", "Sejarah", "Kelas Asas Matematik"],
+    "Tahun 6": ["Bahasa Melayu", "Bahasa Inggeris", "Matematik", "Sains", "Sejarah", "Kelas Asas Matematik"],
     "Form 1": ["Bahasa Melayu", "Bahasa Inggeris", "Matematik", "Sains", "Sejarah"],
     "Form 2": ["Bahasa Melayu", "Bahasa Inggeris", "Matematik", "Sains", "Sejarah", "Geografi"],
     "Form 3": ["Bahasa Melayu", "Bahasa Inggeris", "Matematik", "Sains", "Sejarah", "Geografi"],
@@ -640,6 +651,9 @@ function addNextChild(skipScroll) {
                     <div id="subjectListContainer_${i}" class="subject-grid">
                         <small style="color:#9CA3AF;">Sila pilih Tahun/Tingkatan terlebih dahulu.</small>
                     </div>
+                    <div id="asasMathNotice_${i}" class="asas-math-notice">
+                        ℹ️ Kelas Asas Matematik terhad kepada 10 pelajar setiap sesi. Pengesahan kekosongan tempat akan dimaklumkan oleh pihak pejabat PTTD.
+                    </div>
                 </div>
             </div>
 
@@ -821,6 +835,8 @@ function restoreDraftFromLocalStorage() {
                     }
                 });
             }
+
+            updateAsasMathNotice(i);
 
             if (cData.savedState) {
                 saveChildCard(i);
@@ -1266,6 +1282,17 @@ function checkICForChild(index, isSilentAutoCheck) {
     });
 }
 
+function updateAsasMathNotice(index) {
+    var noticeEl = document.getElementById('asasMathNotice_' + index);
+    if (!noticeEl) return;
+    var checkedSubjs = Array.from(document.querySelectorAll('.subj-item-' + index + ':checked')).map(cb => cb.value);
+    if (checkedSubjs.includes("Kelas Asas Matematik")) {
+        noticeEl.style.display = "block";
+    } else {
+        noticeEl.style.display = "none";
+    }
+}
+
 function onChildGradeChange(index) {
     var grade = document.getElementById('grade2027_' + index).value;
     var branchSelect = document.getElementById('branchSelect_' + index);
@@ -1313,9 +1340,13 @@ function loadSubjectsForChild(index) {
                                  '<option value="PakejA_Plus">Pakej A + Tambahan Subjek</option>' +
                                  '<option value="PakejB_Plus">Pakej B + Tambahan Subjek</option>' +
                                  '<option value="Custom">Pilihan Subjek (Custom)</option>';
+        } else if (grade === "Tahun 4" || grade === "Tahun 5" || grade === "Tahun 6") {
+            pkgSelect.innerHTML = '<option value="PakejAll">Semua Subjek (Pakej 5 Subjek - RM180)</option>' +
+                                 '<option value="PakejAll_AsasMath">Pakej Penuh (5 subjek) + Kelas Asas Matematik (RM230)</option>' +
+                                 '<option value="Custom">Pilihan Subjek (Custom)</option>';
         } else {
-            var allSubCount = list.length;
-            pkgSelect.innerHTML = '<option value="PakejAll">Semua Subjek (Pakej ' + allSubCount + ' Subjek)</option>' +
+            var coreSubCount = list.filter(function(s) { return s !== "Kelas Asas Matematik"; }).length;
+            pkgSelect.innerHTML = '<option value="PakejAll">Semua Subjek (Pakej ' + coreSubCount + ' Subjek)</option>' +
                                  '<option value="Custom">Pilihan Subjek (Custom)</option>';
         }
     } else {
@@ -1324,13 +1355,14 @@ function loadSubjectsForChild(index) {
 
     list.forEach(function(subjek) {
         var label = document.createElement('label');
-        label.innerHTML = '<input type="checkbox" class="subj-item-' + index + '" value="' + subjek + '" onchange="calculateTotalFees(); saveDraftToLocalStorage();"> ' + subjek;
+        label.innerHTML = '<input type="checkbox" class="subj-item-' + index + '" value="' + subjek + '" onchange="updateAsasMathNotice(' + index + '); calculateTotalFees(); saveDraftToLocalStorage();"> ' + subjek;
         container.appendChild(label);
     });
 
     if (grade && format === "Regular") {
         handleChildPackageChange(index);
     } else {
+        updateAsasMathNotice(index);
         calculateTotalFees();
     }
 }
@@ -1372,6 +1404,9 @@ function handleChildPackageChange(index) {
             }
         } else {
             if (pkg === "PakejAll") {
+                cb.checked = (cb.value !== "Kelas Asas Matematik");
+                cb.disabled = true;
+            } else if (pkg === "PakejAll_AsasMath") {
                 cb.checked = true;
                 cb.disabled = true;
             } else {
@@ -1379,6 +1414,7 @@ function handleChildPackageChange(index) {
             }
         }
     });
+    updateAsasMathNotice(index);
     calculateTotalFees();
     saveDraftToLocalStorage();
 }
@@ -1398,14 +1434,24 @@ function computeMonthlyFee(grade, format, pkgVal, selectedSubjectNames) {
         return (count === 2 || pkgVal === "PakejAll") ? 180 : 100;
     }
 
-    if (grade === "Tahun 3") {
-        return (count >= 2) ? 90 : 60;
-    }
+    if (grade === "Tahun 3" || grade === "Tahun 4" || grade === "Tahun 5" || grade === "Tahun 6") {
+        var hasAsasMath = selectedSubjectNames.includes("Kelas Asas Matematik");
+        var normalCount = hasAsasMath ? (count - 1) : count;
 
-    if (grade === "Tahun 4" || grade === "Tahun 5" || grade === "Tahun 6") {
-        if (count === 1) return 60;
-        if (count >= 4) return 180;
-        return count * 45;
+        if (hasAsasMath) {
+            if (normalCount === 0) return 100;
+            if (normalCount === 1) return 135;
+            if (normalCount === 2) return 165;
+            if (normalCount === 3) return 200;
+            return 230; // 4 atau 5 subjek biasa (Pakej) + Kelas Asas Matematik
+        }
+
+        if (grade === "Tahun 3") {
+            return (normalCount >= 2) ? 90 : 60;
+        }
+        if (normalCount === 1) return 60;
+        if (normalCount >= 4) return 180;
+        return normalCount * 45;
     }
 
     if (grade === "Form 1") {
