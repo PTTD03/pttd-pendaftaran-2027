@@ -1,0 +1,473 @@
+<!DOCTYPE html>
+<html lang="ms">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Semakan Yuran Pelajar - Pusat Tuisyen Teraju Didik (PTTD)</title>
+    <style>
+        :root { --primary: #1E3A8A; --secondary: #D97706; --success: #059669; --danger: #DC2626; --bg: #F3F4F6; }
+        * { box-sizing: border-box; }
+        body {
+            margin: 0;
+            padding: 15px;
+            background: var(--bg);
+            font-family: system-ui, -apple-system, sans-serif;
+            color: #1F2937;
+        }
+        .container {
+            max-width: 850px;
+            margin: 0 auto;
+            background: #FFFFFF;
+            border-radius: 12px;
+            padding: 24px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+        }
+        .header-box {
+            text-align: center;
+            border-bottom: 2px solid #E5E7EB;
+            padding-bottom: 16px;
+            margin-bottom: 20px;
+        }
+        .logo-img {
+            width: 100%;
+            max-width: 520px;
+            height: auto;
+            border-radius: 8px;
+            margin: 0 auto 12px auto;
+            display: block;
+        }
+        h1 { color: var(--primary); margin: 0; font-size: 22px; }
+        .subtitle { color: #6B7280; font-size: 13.5px; margin: 4px 0 0 0; }
+
+        /* VERIFICATION CARD */
+        .verify-card {
+            max-width: 460px;
+            margin: 20px auto;
+            background: #F8FAFC;
+            border: 1px solid #CBD5E1;
+            border-radius: 10px;
+            padding: 22px;
+        }
+        .verify-card h3 { margin: 0 0 6px 0; color: var(--primary); text-align: center; }
+        .verify-desc { font-size: 13px; color: #4B5563; text-align: center; margin: 0 0 18px 0; line-height: 1.5; }
+
+        .form-group { display: flex; flex-direction: column; margin-bottom: 14px; }
+        label { font-size: 13px; font-weight: 600; margin-bottom: 5px; color: #374151; }
+        input {
+            padding: 11px 12px;
+            border: 1px solid #D1D5DB;
+            border-radius: 6px;
+            font-size: 16px;
+            width: 100%;
+            outline: none;
+        }
+        input:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(30,58,138,0.1);
+        }
+
+        .btn-check {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 13px 20px;
+            font-size: 15.5px;
+            font-weight: bold;
+            border-radius: 8px;
+            cursor: pointer;
+            width: 100%;
+            margin-top: 6px;
+        }
+        .btn-check:hover { background: #1E40AF; }
+        .btn-check:disabled { background: #9CA3AF; cursor: not-allowed; }
+
+        .privacy-note {
+            margin-top: 14px;
+            font-size: 12px;
+            color: #6B7280;
+            text-align: center;
+            line-height: 1.5;
+        }
+
+        /* PORTAL RESULT VIEW */
+        #portalResultSection { display: none; }
+
+        .guardian-banner {
+            background: #EFF6FF;
+            border: 1px solid #BFDBFE;
+            border-radius: 8px;
+            padding: 12px 15px;
+            margin-bottom: 18px;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            align-items: center;
+            gap: 10px;
+        }
+        .btn-exit {
+            background: #E5E7EB;
+            color: #374151;
+            border: none;
+            padding: 7px 14px;
+            border-radius: 6px;
+            font-size: 13px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        /* SIBLING TABS */
+        .sibling-tabs {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-bottom: 18px;
+        }
+        .sibling-tab {
+            padding: 9px 15px;
+            border-radius: 7px;
+            border: 2px solid #CBD5E1;
+            background: #F8FAFC;
+            font-weight: bold;
+            font-size: 13.5px;
+            color: #334155;
+            cursor: pointer;
+        }
+        .sibling-tab.active {
+            border-color: var(--primary);
+            background: var(--primary);
+            color: white;
+        }
+
+        /* STUDENT SUMMARY BOX */
+        .student-info-box {
+            background: #F8FAFC;
+            border: 1px solid #CBD5E1;
+            border-radius: 10px;
+            padding: 16px;
+            margin-bottom: 18px;
+            font-size: 13.5px;
+            line-height: 1.7;
+        }
+        .arrears-alert {
+            background: #FEF2F2;
+            border: 1px solid #FCA5A5;
+            color: #991B1B;
+            padding: 10px 14px;
+            border-radius: 7px;
+            margin-top: 10px;
+            font-weight: bold;
+            font-size: 13.5px;
+        }
+        .settled-alert {
+            background: #ECFDF5;
+            border: 1px solid #6EE7B7;
+            color: #065F46;
+            padding: 10px 14px;
+            border-radius: 7px;
+            margin-top: 10px;
+            font-weight: bold;
+            font-size: 13.5px;
+        }
+
+        /* LEDGER TABLE */
+        .table-wrapper {
+            overflow-x: auto;
+            border: 1px solid #E5E7EB;
+            border-radius: 8px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+            min-width: 650px;
+        }
+        th {
+            background: #1E3A8A;
+            color: white;
+            padding: 11px 10px;
+            text-align: left;
+            font-weight: 600;
+        }
+        td {
+            padding: 10px;
+            border-bottom: 1px solid #E5E7EB;
+            vertical-align: middle;
+        }
+        tr:last-child td { border-bottom: none; }
+        tr:nth-child(even) { background: #F9FAFB; }
+
+        .status-pill {
+            display: inline-block;
+            padding: 3px 8px;
+            border-radius: 999px;
+            font-size: 11.5px;
+            font-weight: bold;
+            white-space: nowrap;
+        }
+        .status-paid { background: #D1FAE5; color: #065F46; }
+        .status-partial { background: #FEF3C7; color: #92400E; }
+        .status-unpaid { background: #F3F4F6; color: #6B7280; }
+
+        .btn-download-pdf {
+            display: inline-block;
+            background: #059669;
+            color: white;
+            text-decoration: none;
+            padding: 5px 10px;
+            border-radius: 5px;
+            font-size: 12px;
+            font-weight: bold;
+            white-space: nowrap;
+        }
+        .btn-download-pdf:hover { background: #047857; }
+
+        .footer-wa-box {
+            margin-top: 22px;
+            background: #FFFBEB;
+            border: 1px solid #FDE68A;
+            border-radius: 8px;
+            padding: 14px 16px;
+            text-align: center;
+            font-size: 13.5px;
+        }
+        .btn-wa-office {
+            display: inline-block;
+            margin-top: 10px;
+            background: #16A34A;
+            color: white;
+            text-decoration: none;
+            padding: 10px 18px;
+            border-radius: 7px;
+            font-weight: bold;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="header-box">
+        <img src="https://lh3.googleusercontent.com/d/1WlMIwoIseQSpgEN7-CjLmnIOInagk1o2" class="logo-img" alt="Logo PTTD">
+        <h1>Portal Semakan Yuran PTTD 2027</h1>
+        <p class="subtitle">Pusat Tuisyen Teraju Didik (Cawangan Pengkalan & Pasir Puteh)</p>
+    </div>
+
+    <!-- SKRIN 1: PENGESAHAN 2-LANGKAH (NO. IC ANAK + NO. TEL PENJAGA) -->
+    <div id="verifySection" class="verify-card">
+        <h3>🔒 Semakan Rekod Yuran Pelajar</h3>
+        <p class="verify-desc">
+            Sila masukkan <strong>No. MyKad / MyKid anak</strong> dan <strong>No. Telefon Ibu/Bapa</strong> yang didaftarkan bagi tujuan pengesahan privasi.
+        </p>
+
+        <form onsubmit="checkParentRecords(event)">
+            <div class="form-group">
+                <label for="inputChildIC">No. MyKad / MyKid Pelajar (12 Digit) *</label>
+                <input type="text" id="inputChildIC" inputmode="numeric" maxlength="12" placeholder="Contoh: 140512085431" oninput="this.value = this.value.replace(/[^0-9]/g, '')" required>
+            </div>
+
+            <div class="form-group">
+                <label for="inputGuardianPhone">No. Telefon Ibu / Bapa Berdaftar *</label>
+                <input type="tel" id="inputGuardianPhone" inputmode="numeric" maxlength="12" placeholder="Contoh: 0123456789" oninput="this.value = this.value.replace(/[^0-9]/g, '')" required>
+            </div>
+
+            <button type="submit" id="btnCheckRecord" class="btn-check">Semak Rekod & Resit Yuran</button>
+        </form>
+
+        <div class="privacy-note">
+            🛡️ Maklumat yuran dan resit rasmi hanya boleh diakses menggunakan gabungan No. MyKad/MyKid pelajar dan nombor telefon penjaga yang sah.
+        </div>
+    </div>
+
+    <!-- SKRIN 2: PAPARAN REKOD YURAN & RESIT PDF -->
+    <div id="portalResultSection">
+        <div class="guardian-banner">
+            <div>
+                <span style="font-size: 12.5px; color: #4B5563;">Selamat Datang,</span><br>
+                <strong style="font-size: 15px; color: #1E3A8A;" id="guardianNameDisplay">-</strong>
+            </div>
+            <button type="button" class="btn-exit" onclick="resetPortal()">Tutup / Semak No. Lain</button>
+        </div>
+
+        <!-- TAB ADIK-BERADIK (JIKA LEBIH DARI 1 ANAK) -->
+        <div id="siblingTabsContainer" class="sibling-tabs"></div>
+
+        <!-- PROFIL PELAJAR AKTIF -->
+        <div id="activeStudentInfo" class="student-info-box"></div>
+
+        <!-- JADUAL LEJAR YURAN -->
+        <div class="table-wrapper">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Item Bayaran</th>
+                        <th>Kadar (RM)</th>
+                        <th>Status</th>
+                        <th>Tarikh Bayar</th>
+                        <th>No. Resit</th>
+                        <th>Mod Bayaran</th>
+                        <th>Resit Rasmi</th>
+                    </tr>
+                </thead>
+                <tbody id="feeTableBody"></tbody>
+            </table>
+        </div>
+
+        <div class="footer-wa-box">
+            <div>Ada pertanyaan mengenai yuran, baki tertunggak, atau ingin menghantar bukti bayaran?</div>
+            <a id="officeWaLink" href="#" target="_blank" rel="noopener noreferrer" class="btn-wa-office">
+                💬 Hubungi WhatsApp Pejabat PTTD
+            </a>
+        </div>
+    </div>
+</div>
+
+<script>
+var FEE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwxKWDGDhJFLzv5bnsg76ZqgDaDJ0yvt0W7jIFr_fNLFZ5Vtrb525xySnrowk8lz2c/exec';
+
+var OFFICE_WA = {
+    'Pengkalan': '60195702760',
+    'Pasir Puteh': '60199272760',
+    'Online': '60195702760'
+};
+
+var siblingsList = [];
+
+function checkParentRecords(e) {
+    e.preventDefault();
+    var ic = document.getElementById('inputChildIC').value.trim();
+    var phone = document.getElementById('inputGuardianPhone').value.trim();
+
+    if (ic.length < 6 || phone.length < 9) {
+        alert('Sila masukkan No. MyKad/MyKid pelajar dan No. Telefon penjaga yang sah.');
+        return;
+    }
+
+    var btn = document.getElementById('btnCheckRecord');
+    btn.innerText = 'Sedang Menyemak Rekod...';
+    btn.disabled = true;
+
+    var url = FEE_SCRIPT_URL + '?action=parentCheck&ic=' + encodeURIComponent(ic) + '&phone=' + encodeURIComponent(phone);
+
+    fetch(url)
+    .then(function(res) { return res.json(); })
+    .then(function(data) {
+        btn.innerText = 'Semak Rekod & Resit Yuran';
+        btn.disabled = false;
+
+        if (!data.success) {
+            alert('⚠️ ' + (data.message || 'Rekod tidak ditemui.'));
+            return;
+        }
+
+        siblingsList = data.children || [];
+        document.getElementById('guardianNameDisplay').innerText = (data.guardianName || 'PENJAGA').toUpperCase();
+
+        var tabsContainer = document.getElementById('siblingTabsContainer');
+        tabsContainer.innerHTML = '';
+        var initialIndex = 0;
+
+        if (siblingsList.length > 1) {
+            siblingsList.forEach(function(child, idx) {
+                if (child.icNumber === ic) initialIndex = idx;
+                var tabBtn = document.createElement('button');
+                tabBtn.type = 'button';
+                tabBtn.className = 'sibling-tab' + (idx === initialIndex ? ' active' : '');
+                tabBtn.innerText = '👧👦 ' + child.studentName.toUpperCase();
+                tabBtn.onclick = function() {
+                    document.querySelectorAll('.sibling-tab').forEach(function(t) { t.classList.remove('active'); });
+                    tabBtn.classList.add('active');
+                    renderStudentLedger(idx);
+                };
+                tabsContainer.appendChild(tabBtn);
+            });
+        }
+
+        document.getElementById('verifySection').style.display = 'none';
+        document.getElementById('portalResultSection').style.display = 'block';
+        renderStudentLedger(initialIndex);
+    })
+    .catch(function(err) {
+        btn.innerText = 'Semak Rekod & Resit Yuran';
+        btn.disabled = false;
+        alert('Ralat sambungan pelayan: ' + err.message);
+    });
+}
+
+function renderStudentLedger(index) {
+    var stu = siblingsList[index];
+    if (!stu) return;
+
+    var balanceBanner = stu.previousBalance > 0
+        ? `<div class="arrears-alert">⚠️ Baki Tertunggak Semasa: RM ${stu.previousBalance.toFixed(2)}</div>`
+        : `<div class="settled-alert">✅ Tiada baki tertunggak direkodkan setakat ini.</div>`;
+
+    document.getElementById('activeStudentInfo').innerHTML = `
+        <div style="font-size: 16px; font-weight: bold; color: #1E3A8A; margin-bottom: 4px;">
+            👤 ${stu.studentName.toUpperCase()}
+        </div>
+        <div>• <strong>No. MyKad / MyKid:</strong> ${stu.icNumber} | <strong>Status:</strong> ${stu.studentStatus}</div>
+        <div>• <strong>Cawangan:</strong> ${stu.branchSelect} | <strong>Tahun / Tingkatan:</strong> ${stu.grade2027} (${stu.classFormat})</div>
+        <div>• <strong>Subjek Aktif (${stu.fees.subjects.length}):</strong> ${stu.selectedSubjects}</div>
+        <div>• <strong>Kadar Yuran Bulanan:</strong> RM ${stu.fees.monthlyFee.toFixed(2)} / bulan</div>
+        ${balanceBanner}
+    `;
+
+    var tbody = document.getElementById('feeTableBody');
+    tbody.innerHTML = '';
+
+    stu.billItems.forEach(function(item) {
+        var tr = document.createElement('tr');
+        var statusHtml = '';
+        var dateHtml = '-';
+        var receiptHtml = '-';
+        var modeHtml = '-';
+        var downloadHtml = '-';
+
+        if (item.key === 'Pendaftaran' && stu.fees.regFee === 0) {
+            statusHtml = '<span class="status-pill status-paid">Dikecualikan (Lama)</span>';
+        } else if (item.paid && item.receiptInfo && item.receiptInfo.length > 0) {
+            var latest = item.receiptInfo[item.receiptInfo.length - 1];
+            statusHtml = (latest.balanceAmt > 0)
+                ? '<span class="status-pill status-partial">Berbaki (RM ' + latest.balanceAmt.toFixed(2) + ')</span>'
+                : '<span class="status-pill status-paid">Selesai</span>';
+            dateHtml = latest.dateStr.split(' ')[0];
+            receiptHtml = '<strong>' + latest.receiptNo + '</strong>';
+            modeHtml = latest.paymentMode;
+            if (latest.pdfUrl) {
+                downloadHtml = '<a href="' + latest.pdfUrl + '" target="_blank" rel="noopener noreferrer" class="btn-download-pdf">📄 Muat Turun PDF</a>';
+            }
+        } else {
+            statusHtml = '<span class="status-pill status-unpaid">Belum Bayar</span>';
+        }
+
+        tr.innerHTML = `
+            <td><strong>${item.label}</strong></td>
+            <td>RM ${item.amount.toFixed(2)}</td>
+            <td>${statusHtml}</td>
+            <td>${dateHtml}</td>
+            <td>${receiptHtml}</td>
+            <td>${modeHtml}</td>
+            <td>${downloadHtml}</td>
+        `;
+        tbody.appendChild(tr);
+    });
+
+    var waPhone = OFFICE_WA[stu.branchSelect] || OFFICE_WA['Pengkalan'];
+    var waMsg = "Assalamualaikum / Salam Sejahtera Admin PTTD (" + stu.branchSelect + "),\n\n" +
+                "Saya penjaga kepada *" + stu.studentName.toUpperCase() + "* (" + stu.grade2027 + " - IC: " + stu.icNumber + ") ingin membuat pertanyaan/pembayaran yuran Sesi 2027. Terima kasih.";
+    var waBtn = document.getElementById('officeWaLink');
+    waBtn.href = "https://wa.me/" + waPhone + "?text=" + encodeURIComponent(waMsg);
+    waBtn.innerText = "💬 Hubungi WhatsApp Pejabat PTTD (" + stu.branchSelect + ")";
+}
+
+function resetPortal() {
+    siblingsList = [];
+    document.getElementById('portalResultSection').style.display = 'none';
+    document.getElementById('verifySection').style.display = 'block';
+    document.getElementById('inputChildIC').value = '';
+    document.getElementById('inputGuardianPhone').value = '';
+}
+</script>
+
+</body>
+</html>
